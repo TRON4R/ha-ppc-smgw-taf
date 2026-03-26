@@ -78,16 +78,30 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Schedule the daily fetch
         self._schedule_daily_fetch()
 
-        # If we have no data yet (first start), try an immediate fetch
+        # Check if we need to fetch: either no data at all, or stale data
+        yesterday = dt_util.now().date() - timedelta(days=1)
+        stored_date = self.data.get(SENSOR_DATE) if self.data else None
+        needs_fetch = False
+
         if not self.data:
             _LOGGER.info(
                 "No stored data found - attempting initial data fetch"
             )
+            needs_fetch = True
+        elif stored_date != yesterday.isoformat():
+            _LOGGER.info(
+                "Stored data is for %s but yesterday is %s - fetching update",
+                stored_date,
+                yesterday,
+            )
+            needs_fetch = True
+
+        if needs_fetch:
             try:
                 await self._async_do_daily_fetch()
             except UpdateFailed as err:
                 _LOGGER.warning(
-                    "Initial fetch failed (will retry at scheduled time): %s",
+                    "Startup fetch failed (will retry at scheduled time): %s",
                     err,
                 )
 
