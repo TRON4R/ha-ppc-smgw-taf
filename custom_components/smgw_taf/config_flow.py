@@ -15,6 +15,9 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -26,12 +29,14 @@ from .const import (
     CONF_METER_ID,
     CONF_PASSWORD,
     CONF_TAF7_PROFILE_NAME,
-    CONF_TARIFF_SWITCH_TIME,
+    CONF_TARIFF_SWITCH_HOUR,
+    CONF_TARIFF_SWITCH_MINUTE,
     CONF_UPDATE_TIME,
     CONF_URL,
     CONF_USERNAME,
     DEFAULT_TAF7_PROFILE_NAME,
-    DEFAULT_TARIFF_SWITCH_TIME,
+    DEFAULT_TARIFF_SWITCH_HOUR,
+    DEFAULT_TARIFF_SWITCH_MINUTE,
     DEFAULT_UPDATE_TIME,
     DEFAULT_URL,
     DOMAIN,
@@ -44,6 +49,19 @@ from .smgw_client import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Hour options: 0-23
+HOUR_OPTIONS = [
+    {"value": str(h), "label": f"{h:02d}"} for h in range(24)
+]
+
+# Minute options: 0, 15, 30, 45 (matching TAF7 15-minute resolution)
+MINUTE_OPTIONS = [
+    {"value": "0", "label": "00"},
+    {"value": "15", "label": "15"},
+    {"value": "30", "label": "30"},
+    {"value": "45", "label": "45"},
+]
 
 
 def _build_schema(
@@ -74,9 +92,23 @@ def _build_schema(
                 default=d.get(CONF_TAF7_PROFILE_NAME, DEFAULT_TAF7_PROFILE_NAME),
             ): str,
             vol.Optional(
-                CONF_TARIFF_SWITCH_TIME,
-                default=d.get(CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME),
-            ): TimeSelector(TimeSelectorConfig()),
+                CONF_TARIFF_SWITCH_HOUR,
+                default=str(d.get(CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR)),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=HOUR_OPTIONS,
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Optional(
+                CONF_TARIFF_SWITCH_MINUTE,
+                default=str(d.get(CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE)),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=MINUTE_OPTIONS,
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
             vol.Optional(
                 CONF_UPDATE_TIME,
                 default=d.get(CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME),
@@ -105,6 +137,14 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            # Convert string values from dropdowns to int for storage
+            user_input[CONF_TARIFF_SWITCH_HOUR] = int(
+                user_input.get(CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR)
+            )
+            user_input[CONF_TARIFF_SWITCH_MINUTE] = int(
+                user_input.get(CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE)
+            )
+
             client = SmgwClient(
                 base_url=user_input[CONF_URL],
                 username=user_input[CONF_USERNAME],
@@ -156,6 +196,14 @@ class SmgwTafOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            # Convert string values from dropdowns to int for storage
+            user_input[CONF_TARIFF_SWITCH_HOUR] = int(
+                user_input.get(CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR)
+            )
+            user_input[CONF_TARIFF_SWITCH_MINUTE] = int(
+                user_input.get(CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE)
+            )
+
             new_data = {**self.config_entry.data, **user_input}
 
             client = SmgwClient(

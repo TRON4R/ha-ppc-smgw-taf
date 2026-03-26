@@ -7,14 +7,16 @@ CONF_URL = "url"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 CONF_UPDATE_TIME = "update_time"
-CONF_TARIFF_SWITCH_TIME = "tariff_switch_time"
+CONF_TARIFF_SWITCH_HOUR = "tariff_switch_hour"
+CONF_TARIFF_SWITCH_MINUTE = "tariff_switch_minute"
 CONF_TAF7_PROFILE_NAME = "taf7_profile_name"
 CONF_METER_ID = "meter_id"  # Parsed from SMGW during setup
 
 # Defaults
 DEFAULT_URL = "https://192.168.100.100/cgi-bin/hanservice.cgi"
 DEFAULT_UPDATE_TIME = "00:15:00"
-DEFAULT_TARIFF_SWITCH_TIME = "05:00:00"
+DEFAULT_TARIFF_SWITCH_HOUR = 5
+DEFAULT_TARIFF_SWITCH_MINUTE = 0
 DEFAULT_TAF7_PROFILE_NAME = "TAF7_OCT_B+E"
 
 # OBIS codes

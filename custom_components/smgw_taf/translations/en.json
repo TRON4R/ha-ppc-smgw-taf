@@ -9,13 +9,15 @@
           "username": "Username",
           "password": "Password",
           "taf7_profile_name": "TAF7 profile name",
-          "tariff_switch_time": "Standard tariff start time",
+          "tariff_switch_hour": "Standard tariff start (hour)",
+          "tariff_switch_minute": "Standard tariff start (minute)",
           "update_time": "Fetch time"
         },
         "data_description": {
           "url": "URL of the SMGW HAN interface (default: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "taf7_profile_name": "Name of the TAF7 evaluation profile as configured in the SMGW",
-          "tariff_switch_time": "Time when the standard tariff begins (Go tariff runs from 00:00 until this time)",
+          "tariff_switch_hour": "Hour when the standard tariff begins",
+          "tariff_switch_minute": "Minute of the tariff switch (0, 15, 30 or 45)",
           "update_time": "Time of day for the automatic daily data fetch"
         }
       }
@@ -40,7 +42,8 @@
           "username": "Username",
           "password": "Password",
           "taf7_profile_name": "TAF7 profile name",
-          "tariff_switch_time": "Standard tariff start time",
+          "tariff_switch_hour": "Standard tariff start (hour)",
+          "tariff_switch_minute": "Standard tariff start (minute)",
           "update_time": "Fetch time"
         }
       }

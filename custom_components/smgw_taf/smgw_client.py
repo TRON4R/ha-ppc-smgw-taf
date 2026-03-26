@@ -58,7 +58,7 @@ class DailyData:
 
     date: date
     import_midnight: float
-    import_0500: float
+    import_tariff_switch: float
     import_next_midnight: float
     export_midnight: float
     export_next_midnight: float
@@ -411,7 +411,10 @@ class SmgwClient:
             await self._logout()
 
     async def async_fetch_daily_data(
-        self, target_date: date, tariff_switch_hour: int = 5
+        self,
+        target_date: date,
+        tariff_switch_hour: int = 5,
+        tariff_switch_minute: int = 0,
     ) -> DailyData:
         """Fetch and process daily data for a given date."""
         try:
@@ -445,7 +448,8 @@ class SmgwClient:
                 )
 
             return self._process_readings(
-                target_date, all_readings, tariff_switch_hour
+                target_date, all_readings,
+                tariff_switch_hour, tariff_switch_minute
             )
 
         finally:
@@ -456,55 +460,61 @@ class SmgwClient:
         target_date: date,
         readings: list[MeterReading],
         tariff_switch_hour: int = 5,
+        tariff_switch_minute: int = 0,
     ) -> DailyData:
         """Process raw readings into DailyData with tariff calculations.
 
-        Uses exact timestamp matching: finds the reading closest to XX:00:00
-        within each target hour, with minute < 15 to avoid picking up values
-        such as 00:15 or 05:15.
+        Finds the reading closest to the target time (hour:minute) within
+        a tolerance window of +/- 7 minutes to match TAF7 15-minute grid.
         """
         next_day = target_date + timedelta(days=1)
 
-        import_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
-        export_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
+        import_readings = [r for r in readings if r.obis_code == OBIS_IMPORT]
+        export_readings = [r for r in readings if r.obis_code == OBIS_EXPORT]
 
-        for r in readings:
-            key = (r.timestamp.date(), r.timestamp.hour)
-            if r.obis_code == OBIS_IMPORT:
-                import_by_hour.setdefault(key, []).append(r)
-            elif r.obis_code == OBIS_EXPORT:
-                export_by_hour.setdefault(key, []).append(r)
-
-        def earliest_value(
-            lookup: dict[tuple[date, int], list[MeterReading]],
-            d: date,
-            h: int,
+        def find_closest_value(
+            meter_readings: list[MeterReading],
+            target_dt: datetime,
+            tolerance_minutes: int = 7,
         ) -> float | None:
-            """Get value of earliest reading in given hour, minute < 15."""
-            candidates = lookup.get((d, h), [])
-            valid = [r for r in candidates if r.timestamp.minute < 15]
-            if not valid:
-                valid = candidates
-            if not valid:
-                return None
-            valid.sort(key=lambda r: r.timestamp)
-            return valid[0].value
+            """Find reading closest to target_dt within tolerance."""
+            best: MeterReading | None = None
+            best_delta = timedelta.max
+            for r in meter_readings:
+                delta = abs(r.timestamp - target_dt)
+                if (
+                    delta < timedelta(minutes=tolerance_minutes)
+                    and delta < best_delta
+                ):
+                    best = r
+                    best_delta = delta
+            return best.value if best else None
 
-        import_a = earliest_value(import_by_hour, target_date, 0)
-        import_b = earliest_value(
-            import_by_hour, target_date, tariff_switch_hour
+        # Target timestamps
+        midnight_start = datetime(
+            target_date.year, target_date.month, target_date.day, 0, 0, 1
         )
-        import_c = earliest_value(import_by_hour, next_day, 0)
-        export_a = earliest_value(export_by_hour, target_date, 0)
-        export_c = earliest_value(export_by_hour, next_day, 0)
+        tariff_switch = datetime(
+            target_date.year, target_date.month, target_date.day,
+            tariff_switch_hour, tariff_switch_minute, 1,
+        )
+        midnight_end = datetime(
+            next_day.year, next_day.month, next_day.day, 0, 0, 1
+        )
+
+        import_a = find_closest_value(import_readings, midnight_start)
+        import_b = find_closest_value(import_readings, tariff_switch)
+        import_c = find_closest_value(import_readings, midnight_end)
+        export_a = find_closest_value(export_readings, midnight_start)
+        export_c = find_closest_value(export_readings, midnight_end)
+
+        tariff_str = f"{tariff_switch_hour:02d}:{tariff_switch_minute:02d}"
 
         missing = []
         if import_a is None:
             missing.append(f"Import at 00:00 on {target_date}")
         if import_b is None:
-            missing.append(
-                f"Import at {tariff_switch_hour:02d}:00 on {target_date}"
-            )
+            missing.append(f"Import at {tariff_str} on {target_date}")
         if import_c is None:
             missing.append(f"Import at 00:00 on {next_day}")
         if export_a is None:
@@ -513,12 +523,12 @@ class SmgwClient:
             missing.append(f"Export at 00:00 on {next_day}")
 
         if missing:
-            available_import = sorted(import_by_hour.keys())
-            available_export = sorted(export_by_hour.keys())
+            all_timestamps = sorted(
+                set(r.timestamp for r in import_readings + export_readings)
+            )
             raise SmgwParseError(
                 f"Missing required meter readings: {', '.join(missing)}. "
-                f"Available import hours: {available_import}, "
-                f"Available export hours: {available_export}"
+                f"Available timestamps: {all_timestamps}"
             )
 
         daily_import_go = round(import_b - import_a, 4)
@@ -544,7 +554,7 @@ class SmgwClient:
         return DailyData(
             date=target_date,
             import_midnight=import_a,
-            import_0500=import_b,
+            import_tariff_switch=import_b,
             import_next_midnight=import_c,
             export_midnight=export_a,
             export_next_midnight=export_c,

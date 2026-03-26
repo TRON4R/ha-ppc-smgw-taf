@@ -9,13 +9,15 @@
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
-          "tariff_switch_time": "Start Standard-Tarif",
+          "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
+          "tariff_switch_minute": "Start Standard-Tarif (Minute)",
           "update_time": "Abrufzeit"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "taf7_profile_name": "Name des TAF7-Auswertungsprofils wie im SMGW konfiguriert",
-          "tariff_switch_time": "Uhrzeit, ab der der Standard-Tarif gilt (Go-Tarif läuft von 00:00 bis zu dieser Uhrzeit)",
+          "tariff_switch_hour": "Volle Stunde, ab der der Standard-Tarif gilt",
+          "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
           "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
         }
       }
@@ -40,7 +42,8 @@
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
-          "tariff_switch_time": "Start Standard-Tarif",
+          "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
+          "tariff_switch_minute": "Start Standard-Tarif (Minute)",
           "update_time": "Abrufzeit"
         }
       }

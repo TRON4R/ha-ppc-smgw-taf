@@ -17,9 +17,11 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    CONF_TARIFF_SWITCH_TIME,
+    CONF_TARIFF_SWITCH_HOUR,
+    CONF_TARIFF_SWITCH_MINUTE,
     CONF_UPDATE_TIME,
-    DEFAULT_TARIFF_SWITCH_TIME,
+    DEFAULT_TARIFF_SWITCH_HOUR,
+    DEFAULT_TARIFF_SWITCH_MINUTE,
     DEFAULT_UPDATE_TIME,
     DOMAIN,
     SENSOR_DAILY_EXPORT_TOTAL,
@@ -115,7 +117,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         time_str = self.config_entry.data.get(
             CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME
         )
-        # Parse time string robustly using datetime.time
         try:
             fetch_time = time.fromisoformat(time_str)
         except ValueError:
@@ -161,32 +162,17 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            # Parse tariff switch time from config
-            tariff_time_str = self.config_entry.data.get(
-                CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME
-            )
-            try:
-                tariff_time = time.fromisoformat(tariff_time_str)
-            except ValueError:
-                _LOGGER.warning(
-                    "Invalid tariff switch time '%s', falling back to "
-                    "default '%s'",
-                    tariff_time_str,
-                    DEFAULT_TARIFF_SWITCH_TIME,
-                )
-                tariff_time = time.fromisoformat(DEFAULT_TARIFF_SWITCH_TIME)
-
-            if tariff_time.minute != 0 or tariff_time.second != 0:
-                _LOGGER.warning(
-                    "Tariff switch time '%s' has non-zero minutes/seconds; "
-                    "only the hour (%02d:00) is supported and will be used",
-                    tariff_time_str,
-                    tariff_time.hour,
-                )
-            tariff_hour = tariff_time.hour
+            tariff_hour = int(self.config_entry.data.get(
+                CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR
+            ))
+            tariff_minute = int(self.config_entry.data.get(
+                CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE
+            ))
 
             daily_data = await self._client.async_fetch_daily_data(
-                yesterday, tariff_switch_hour=tariff_hour
+                yesterday,
+                tariff_switch_hour=tariff_hour,
+                tariff_switch_minute=tariff_minute,
             )
         except SmgwClientError as err:
             raise UpdateFailed(
@@ -227,7 +213,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             SENSOR_DAILY_IMPORT_STANDARD: daily_data.daily_import_standard,
             SENSOR_DAILY_EXPORT_TOTAL: daily_data.daily_export_total,
             SENSOR_METER_IMPORT_PREV_DAY_CLOSE: daily_data.import_midnight,
-            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_0500,
+            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_tariff_switch,
             SENSOR_METER_EXPORT_PREV_DAY_CLOSE: daily_data.export_midnight,
         }
 
