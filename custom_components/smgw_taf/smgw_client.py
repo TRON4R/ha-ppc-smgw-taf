@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 import httpx
 from bs4 import BeautifulSoup
 
-from .const import OBIS_EXPORT, OBIS_IMPORT, TARIFF_SWITCH_HOUR
+from .const import OBIS_EXPORT, OBIS_IMPORT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -410,7 +410,9 @@ class SmgwClient:
         finally:
             await self._logout()
 
-    async def async_fetch_daily_data(self, target_date: date) -> DailyData:
+    async def async_fetch_daily_data(
+        self, target_date: date, tariff_switch_hour: int = 5
+    ) -> DailyData:
         """Fetch and process daily data for a given date."""
         try:
             await self._login()
@@ -442,13 +444,18 @@ class SmgwClient:
                     f"No meter readings found for {target_date}"
                 )
 
-            return self._process_readings(target_date, all_readings)
+            return self._process_readings(
+                target_date, all_readings, tariff_switch_hour
+            )
 
         finally:
             await self._logout()
 
     def _process_readings(
-        self, target_date: date, readings: list[MeterReading]
+        self,
+        target_date: date,
+        readings: list[MeterReading],
+        tariff_switch_hour: int = 5,
     ) -> DailyData:
         """Process raw readings into DailyData with tariff calculations.
 
@@ -485,7 +492,7 @@ class SmgwClient:
 
         import_a = earliest_value(import_by_hour, target_date, 0)
         import_b = earliest_value(
-            import_by_hour, target_date, TARIFF_SWITCH_HOUR
+            import_by_hour, target_date, tariff_switch_hour
         )
         import_c = earliest_value(import_by_hour, next_day, 0)
         export_a = earliest_value(export_by_hour, target_date, 0)
@@ -495,7 +502,9 @@ class SmgwClient:
         if import_a is None:
             missing.append(f"Import at 00:00 on {target_date}")
         if import_b is None:
-            missing.append(f"Import at 05:00 on {target_date}")
+            missing.append(
+                f"Import at {tariff_switch_hour:02d}:00 on {target_date}"
+            )
         if import_c is None:
             missing.append(f"Import at 00:00 on {next_day}")
         if export_a is None:

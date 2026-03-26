@@ -26,10 +26,12 @@ from .const import (
     CONF_METER_ID,
     CONF_PASSWORD,
     CONF_TAF7_PROFILE_NAME,
+    CONF_TARIFF_SWITCH_TIME,
     CONF_UPDATE_TIME,
     CONF_URL,
     CONF_USERNAME,
     DEFAULT_TAF7_PROFILE_NAME,
+    DEFAULT_TARIFF_SWITCH_TIME,
     DEFAULT_UPDATE_TIME,
     DEFAULT_URL,
     DOMAIN,
@@ -71,6 +73,10 @@ def _build_schema(
                 CONF_TAF7_PROFILE_NAME,
                 default=d.get(CONF_TAF7_PROFILE_NAME, DEFAULT_TAF7_PROFILE_NAME),
             ): str,
+            vol.Optional(
+                CONF_TARIFF_SWITCH_TIME,
+                default=d.get(CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME),
+            ): TimeSelector(TimeSelectorConfig()),
             vol.Optional(
                 CONF_UPDATE_TIME,
                 default=d.get(CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME),
