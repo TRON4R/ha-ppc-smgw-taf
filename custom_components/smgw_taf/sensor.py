@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_METER_ID,
@@ -189,7 +190,7 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Return the time when the sensor was last reset.
 
         For daily value sensors, this is midnight of the measured date.
-        This tells HA's statistics that each value is a fresh daily total.
+        Returns timezone-aware datetime using HA's timezone.
         """
         if not self.entity_description.is_daily_value:
             return None
@@ -197,21 +198,9 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
             return None
         date_str = self.coordinator.data.get(SENSOR_DATE)
         if date_str:
-            return datetime.fromisoformat(date_str + "T00:00:00")
-        return None
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Return additional state attributes for daily sensors."""
-        if self.coordinator.data is None:
-            return None
-
-        if self.entity_description.data_key in (
-            SENSOR_DAILY_IMPORT_TOTAL,
-            SENSOR_DAILY_IMPORT_GO,
-            SENSOR_DAILY_IMPORT_STANDARD,
-            SENSOR_DAILY_EXPORT_TOTAL,
-        ):
-            return {"date": self.coordinator.data.get(SENSOR_DATE)}
-
+            # Create timezone-aware datetime using HA's configured timezone
+            naive = datetime.fromisoformat(date_str + "T00:00:00")
+            return dt_util.as_local(
+                naive.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+            )
         return None

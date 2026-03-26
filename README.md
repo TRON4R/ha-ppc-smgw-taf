@@ -74,6 +74,10 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
 
+## Intended use case
+
+This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59** (Go tariff) and a standard rate from **05:00 to 23:59**. The tariff split at 05:00 is hardcoded in the current version. If you are using a different tariff structure or a different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) to discuss how to make this configurable.
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.

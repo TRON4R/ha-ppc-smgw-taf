@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import logging
 import re
+import urllib.parse
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
 import httpx
 from bs4 import BeautifulSoup
 
-from .const import OBIS_EXPORT, OBIS_IMPORT
+from .const import OBIS_EXPORT, OBIS_IMPORT, TARIFF_SWITCH_HOUR
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,18 +57,15 @@ class DailyData:
     """Processed daily meter data."""
 
     date: date
-    # Absolute meter readings at key timestamps
-    import_midnight: float  # A: Verbrauch at 00:00
-    import_0500: float  # B: Verbrauch at 05:00
-    import_next_midnight: float  # C: Verbrauch at 00:00 next day
-    export_midnight: float  # Einspeisung at 00:00
-    export_next_midnight: float  # Einspeisung at 00:00 next day
-    # Calculated daily values
-    daily_import_total: float  # C - A
-    daily_import_go: float  # B - A (00:00-05:00)
-    daily_import_standard: float  # C - B (05:00-00:00)
-    daily_export_total: float  # export_next_midnight - export_midnight
-    # All raw readings for archival (optional)
+    import_midnight: float
+    import_0500: float
+    import_next_midnight: float
+    export_midnight: float
+    export_next_midnight: float
+    daily_import_total: float
+    daily_import_go: float
+    daily_import_standard: float
+    daily_export_total: float
     raw_readings: list[MeterReading] = field(default_factory=list)
 
 
@@ -109,6 +107,7 @@ class SmgwClient:
         """Log in to the SMGW and obtain session cookie + CSRF token.
 
         Returns the login page HTML for further parsing (e.g. firmware).
+        All httpx exceptions are wrapped into SmgwClientError subtypes.
         """
         client = await self._get_client()
         try:
@@ -125,7 +124,7 @@ class SmgwClient:
             raise SmgwConnectionError(
                 f"HTTP error during login: {err.response.status_code}"
             ) from err
-        except httpx.ConnectError as err:
+        except (httpx.ConnectError, httpx.RemoteProtocolError) as err:
             raise SmgwConnectionError(
                 f"Cannot connect to SMGW at {self._base_url}: {err}"
             ) from err
@@ -133,8 +132,12 @@ class SmgwClient:
             raise SmgwConnectionError(
                 f"Timeout connecting to SMGW: {err}"
             ) from err
+        except httpx.RequestError as err:
+            # Catch-all for any other httpx request errors
+            raise SmgwConnectionError(
+                f"Request error during login: {err}"
+            ) from err
 
-        # Extract CSRF token from HTML
         self._token = self._parse_token(response.text)
         if not self._token:
             raise SmgwParseError("Could not extract CSRF token from login page")
@@ -145,7 +148,7 @@ class SmgwClient:
     async def _post(self, data: dict) -> str:
         """Send a POST request with the current session.
 
-        Wraps all httpx exceptions into SmgwClientError subtypes (Fix #6).
+        All httpx exceptions are wrapped into SmgwClientError subtypes.
         """
         if not self._token:
             raise SmgwClientError("Not logged in - no CSRF token available")
@@ -164,7 +167,7 @@ class SmgwClient:
             raise SmgwConnectionError(
                 f"HTTP error: {err.response.status_code}"
             ) from err
-        except httpx.ConnectError as err:
+        except (httpx.ConnectError, httpx.RemoteProtocolError) as err:
             raise SmgwConnectionError(
                 f"Connection lost during request: {err}"
             ) from err
@@ -172,8 +175,11 @@ class SmgwClient:
             raise SmgwConnectionError(
                 f"Timeout during request: {err}"
             ) from err
+        except httpx.RequestError as err:
+            raise SmgwConnectionError(
+                f"Request error: {err}"
+            ) from err
 
-        # Update token from response (it may change)
         new_token = self._parse_token(response.text)
         if new_token:
             self._token = new_token
@@ -192,13 +198,26 @@ class SmgwClient:
             self._token = None
 
     def _parse_token(self, html: str) -> str | None:
-        """Extract CSRF token from HTML hidden input field."""
+        """Extract CSRF token from HTML hidden input field.
+
+        Improved regex fallback to handle any attribute order.
+        """
         soup = BeautifulSoup(html, "html.parser")
         token_input = soup.find("input", {"name": "tkn"})
         if token_input and token_input.get("value"):
             return token_input["value"]
-        # Fallback: regex
-        match = re.search(r'name=["\']tkn["\']\s+value=["\']([^"\']+)', html)
+        # Fallback regex: match name=tkn and value= in any order
+        match = re.search(
+            r'<input[^>]*name=["\']tkn["\'][^>]*value=["\']([^"\']+)["\']',
+            html,
+        )
+        if match:
+            return match.group(1)
+        # Try reversed order (value before name)
+        match = re.search(
+            r'<input[^>]*value=["\']([^"\']+)["\'][^>]*name=["\']tkn["\']',
+            html,
+        )
         return match.group(1) if match else None
 
     @staticmethod
@@ -210,19 +229,20 @@ class SmgwClient:
             return fw_div.get_text(strip=True)
         return "unknown"
 
-    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
-        """Navigate to TAF7 profile and return (dropdown_tid, profile_html).
+    @staticmethod
+    def parse_host_from_url(url: str) -> str:
+        """Safely extract host from URL."""
+        try:
+            parsed = urllib.parse.urlparse(url)
+            return parsed.hostname or "unknown"
+        except Exception:
+            return "unknown"
 
-        Flow:
-        1. POST action=tariffform -> get dropdown with profile options
-        2. Find the TAF7 profile's dropdown value
-        3. POST action=tariffform with tid selected -> get profile details page
-        """
-        # Step 1: Get profile list
+    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
+        """Navigate to TAF7 profile and return (dropdown_tid, profile_html)."""
         html = await self._post({"action": "tariffform"})
         soup = BeautifulSoup(html, "html.parser")
 
-        # Find the dropdown
         select = soup.find("select", id="tarifform_select_profile")
         if not select:
             select = soup.find("select")
@@ -252,8 +272,6 @@ class SmgwClient:
             dropdown_tid,
         )
 
-        # Step 2: Select the profile to get the detail page
-        # Use showTariffProfile to get the page with meter domain info
         profile_html = await self._post(
             {"action": "showTariffProfile", "tid": dropdown_tid}
         )
@@ -262,18 +280,12 @@ class SmgwClient:
 
     @staticmethod
     def _parse_meter_id(profile_html: str) -> str:
-        """Parse meter ID from the TAF7 profile detail page.
-
-        Looks for the domain column in the tafvalues table,
-        e.g. "1lgz0072999211.sm" -> "1lgz0072999211"
-        """
+        """Parse meter ID from the TAF7 profile detail page."""
         soup = BeautifulSoup(profile_html, "html.parser")
 
-        # Look in the tafvalues table for domain column
         domain_td = soup.find("td", id="table_tafvalues_col_domain")
         if domain_td:
             domain_text = domain_td.get_text(strip=True)
-            # Strip the ".sm" suffix
             meter_id = domain_text.removesuffix(".sm")
             if meter_id:
                 return meter_id
@@ -283,11 +295,7 @@ class SmgwClient:
         )
 
     async def _get_taf7_tid(self, dropdown_tid: str) -> str:
-        """Get the tid needed for data (showTarification) requests.
-
-        From the tariffform page, navigate to showTarificationForm
-        which has a different tid in a hidden field.
-        """
+        """Get the tid needed for data (showTarification) requests."""
         html = await self._post(
             {"action": "showTarificationForm", "tid": dropdown_tid}
         )
@@ -339,6 +347,7 @@ class SmgwClient:
         def cell_value(td) -> str | None:
             if td is None:
                 return None
+            # Values are in input buttons (not text nodes)
             inp = td.find("input", id="button_tarification_register")
             if inp and inp.get("value"):
                 return inp["value"].strip()
@@ -379,19 +388,12 @@ class SmgwClient:
         )
 
     async def async_validate_and_get_device_info(self) -> SmgwDeviceInfo:
-        """Validate connection, TAF7 profile, and return device info.
-
-        Used during config flow setup. Tests login, navigates to
-        TAF7 profile, extracts meter ID and firmware version.
-        """
+        """Validate connection, TAF7 profile, and return device info."""
         try:
             login_html = await self._login()
             firmware = self._parse_firmware(login_html)
 
-            # Navigate to TAF7 profile (validates profile exists)
             _dropdown_tid, profile_html = await self._navigate_to_taf7_profile()
-
-            # Parse meter ID
             meter_id = self._parse_meter_id(profile_html)
 
             _LOGGER.info(
@@ -409,15 +411,10 @@ class SmgwClient:
             await self._logout()
 
     async def async_fetch_daily_data(self, target_date: date) -> DailyData:
-        """Fetch and process daily data for a given date.
-
-        Queries TAF7 for the full target_date (00:00 to next day)
-        to get all 15-minute interval readings.
-        """
+        """Fetch and process daily data for a given date."""
         try:
             await self._login()
 
-            # Navigate to get dropdown_tid, then get tarification tid
             dropdown_tid, _profile_html = await self._navigate_to_taf7_profile()
             tid = await self._get_taf7_tid(dropdown_tid)
 
@@ -455,17 +452,12 @@ class SmgwClient:
     ) -> DailyData:
         """Process raw readings into DailyData with tariff calculations.
 
-        Uses exact timestamp matching (Fix #5):
-        Finds the reading closest to XX:00:00 within each target hour,
-        with minute < 15 to avoid picking up e.g. 00:15 or 05:15 values.
-
-        A = earliest reading at hour 0 on target_date
-        B = earliest reading at hour 5 on target_date
-        C = earliest reading at hour 0 on target_date + 1
+        Uses exact timestamp matching: finds the reading closest to XX:00:00
+        within each target hour, with minute < 15 to avoid picking up values
+        such as 00:15 or 05:15.
         """
         next_day = target_date + timedelta(days=1)
 
-        # Group readings by (date, hour, obis_code), keep the earliest minute
         import_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
         export_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
 
@@ -483,25 +475,22 @@ class SmgwClient:
         ) -> float | None:
             """Get value of earliest reading in given hour, minute < 15."""
             candidates = lookup.get((d, h), [])
-            # Filter to readings with minute < 15 (i.e. close to XX:00)
             valid = [r for r in candidates if r.timestamp.minute < 15]
             if not valid:
-                # Fallback: accept any reading in that hour
                 valid = candidates
             if not valid:
                 return None
-            # Sort by timestamp, take earliest
             valid.sort(key=lambda r: r.timestamp)
             return valid[0].value
 
-        # Extract A, B, C
         import_a = earliest_value(import_by_hour, target_date, 0)
-        import_b = earliest_value(import_by_hour, target_date, 5)
+        import_b = earliest_value(
+            import_by_hour, target_date, TARIFF_SWITCH_HOUR
+        )
         import_c = earliest_value(import_by_hour, next_day, 0)
         export_a = earliest_value(export_by_hour, target_date, 0)
         export_c = earliest_value(export_by_hour, next_day, 0)
 
-        # Validate all required values are present
         missing = []
         if import_a is None:
             missing.append(f"Import at 00:00 on {target_date}")
@@ -523,13 +512,11 @@ class SmgwClient:
                 f"Available export hours: {available_export}"
             )
 
-        # Calculate daily values
         daily_import_go = round(import_b - import_a, 4)
         daily_import_standard = round(import_c - import_b, 4)
         daily_import_total = round(import_c - import_a, 4)
         daily_export_total = round(export_c - export_a, 4)
 
-        # Sanity checks
         for label, val in [
             ("Go import", daily_import_go),
             ("Standard import", daily_import_standard),

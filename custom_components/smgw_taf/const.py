@@ -19,7 +19,7 @@ DEFAULT_TAF7_PROFILE_NAME = "TAF7_OCT_B+E"
 OBIS_IMPORT = "1-0:1.8.0"  # Verbrauch / Grid import
 OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 
-# Tariff boundary (hour, inclusive start of Standard tariff)
+# Tariff boundary hour — used by _process_readings to pick the B timestamp
 TARIFF_SWITCH_HOUR = 5  # Go: 00:00-04:59, Standard: 05:00-23:59
 
 # Store

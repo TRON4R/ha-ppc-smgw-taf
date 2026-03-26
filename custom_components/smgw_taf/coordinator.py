@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timedelta
+from datetime import datetime, time, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import (
@@ -59,10 +59,10 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.config_entry = config_entry
         self._client = client
-        # Store per entry to avoid collisions (Fix #1)
+        # Store per entry to avoid collisions
         store_key = f"{DOMAIN}_{config_entry.entry_id}"
         self._store = Store(hass, STORE_VERSION, store_key)
-        self._unsub_time_listener: callback | None = None
+        self._unsub_time_listener: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Set up the coordinator: load stored data, schedule daily fetch."""
@@ -107,27 +107,33 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _schedule_daily_fetch(self) -> None:
         """Register a time-based trigger for the daily data fetch."""
-        # Unregister previous listener if any
         if self._unsub_time_listener:
             self._unsub_time_listener()
 
         time_str = self.config_entry.data.get(
             CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME
         )
-        parts = time_str.split(":")
-        hour = int(parts[0]) if len(parts) > 0 else 0
-        minute = int(parts[1]) if len(parts) > 1 else 15
+        # Parse time string robustly using datetime.time
+        try:
+            fetch_time = time.fromisoformat(time_str)
+        except ValueError:
+            _LOGGER.warning(
+                "Invalid time format '%s', falling back to 00:15", time_str
+            )
+            fetch_time = time(0, 15)
 
         self._unsub_time_listener = async_track_time_change(
             self.hass,
             self._handle_daily_fetch,
-            hour=hour,
-            minute=minute,
+            hour=fetch_time.hour,
+            minute=fetch_time.minute,
             second=0,
         )
 
         _LOGGER.info(
-            "Scheduled daily SMGW data fetch at %02d:%02d", hour, minute
+            "Scheduled daily SMGW data fetch at %02d:%02d",
+            fetch_time.hour,
+            fetch_time.minute,
         )
 
     async def _handle_daily_fetch(self, now: datetime) -> None:
@@ -140,7 +146,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_do_daily_fetch(self) -> None:
         """Perform the actual daily data fetch for yesterday."""
-        # Use HA timezone-aware date (Fix #9)
         yesterday = dt_util.now().date() - timedelta(days=1)
 
         # Skip if we already have data for yesterday
@@ -160,7 +165,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 f"Failed to fetch SMGW data for {yesterday}: {err}"
             ) from err
 
-        # Convert to dict for coordinator.data
         data = self._daily_data_to_dict(daily_data)
 
         # Persist to store
@@ -183,7 +187,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Called for manual refreshes from the UI."""
         await self._async_do_daily_fetch()
-        return self.data or {}
+        return self.data if self.data is not None else {}
 
     @staticmethod
     def _daily_data_to_dict(daily_data: DailyData) -> dict[str, Any]:
