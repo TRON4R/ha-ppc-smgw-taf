@@ -21,10 +21,11 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
+      "invalid_profile": "TAF7 profile not found or meter ID could not be read. Check the profile name.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
-      "already_configured": "This SMGW is already configured."
+      "already_configured": "This meter is already configured."
     }
   },
   "options": {
@@ -44,6 +45,7 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
+      "invalid_profile": "TAF7 profile not found or meter ID could not be read. Check the profile name.",
       "unknown": "An unexpected error occurred."
     }
   },

@@ -23,6 +23,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_METER_ID,
     CONF_PASSWORD,
     CONF_TAF7_PROFILE_NAME,
     CONF_UPDATE_TIME,
@@ -33,7 +34,12 @@ from .const import (
     DEFAULT_URL,
     DOMAIN,
 )
-from .smgw_client import SmgwAuthError, SmgwClient, SmgwConnectionError
+from .smgw_client import (
+    SmgwAuthError,
+    SmgwClient,
+    SmgwConnectionError,
+    SmgwParseError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,30 +79,6 @@ def _build_schema(
     )
 
 
-async def _test_connection(user_input: dict[str, Any]) -> str | None:
-    """Test SMGW connection. Returns error key or None on success."""
-    client = SmgwClient(
-        base_url=user_input[CONF_URL],
-        username=user_input[CONF_USERNAME],
-        password=user_input[CONF_PASSWORD],
-        taf7_profile_name=user_input[CONF_TAF7_PROFILE_NAME],
-    )
-    try:
-        can_connect = await client.async_test_connection()
-        if not can_connect:
-            return "cannot_connect"
-    except SmgwAuthError:
-        return "invalid_auth"
-    except SmgwConnectionError:
-        return "cannot_connect"
-    except Exception:
-        _LOGGER.exception("Unexpected error during connection test")
-        return "unknown"
-    finally:
-        await client.close()
-    return None
-
-
 class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SMGW TAF."""
 
@@ -117,14 +99,37 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            error = await _test_connection(user_input)
-            if error:
-                errors["base"] = error
-            else:
-                await self.async_set_unique_id(user_input[CONF_URL])
+            client = SmgwClient(
+                base_url=user_input[CONF_URL],
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+                taf7_profile_name=user_input[CONF_TAF7_PROFILE_NAME],
+            )
+
+            try:
+                # Full validation: login + TAF7 profile + meter ID (Fix #4)
+                device_info = await client.async_validate_and_get_device_info()
+            except SmgwAuthError:
+                errors["base"] = "invalid_auth"
+            except SmgwConnectionError:
+                errors["base"] = "cannot_connect"
+            except SmgwParseError as err:
+                _LOGGER.error("TAF7 profile validation failed: %s", err)
+                errors["base"] = "invalid_profile"
+            except Exception:
+                _LOGGER.exception("Unexpected error during connection test")
+                errors["base"] = "unknown"
+            finally:
+                await client.close()
+
+            if not errors:
+                # Use meter_id as unique_id (Fix #3)
+                await self.async_set_unique_id(device_info.meter_id)
                 self._abort_if_unique_id_configured()
 
-                # Extract IP/hostname for display title
+                # Store meter_id and firmware in config data
+                user_input[CONF_METER_ID] = device_info.meter_id
+
                 host = user_input[CONF_URL].split("//")[1].split("/")[0]
                 return self.async_create_entry(
                     title=f"PPC SMGW ({host})",
@@ -154,13 +159,37 @@ class SmgwTafOptionsFlow(OptionsFlow):
         if user_input is not None:
             new_data = {**self._config_entry.data, **user_input}
 
-            error = await _test_connection(new_data)
-            if error:
-                errors["base"] = error
-            else:
+            client = SmgwClient(
+                base_url=new_data[CONF_URL],
+                username=new_data[CONF_USERNAME],
+                password=new_data[CONF_PASSWORD],
+                taf7_profile_name=new_data[CONF_TAF7_PROFILE_NAME],
+            )
+
+            try:
+                device_info = await client.async_validate_and_get_device_info()
+                new_data[CONF_METER_ID] = device_info.meter_id
+            except SmgwAuthError:
+                errors["base"] = "invalid_auth"
+            except SmgwConnectionError:
+                errors["base"] = "cannot_connect"
+            except SmgwParseError as err:
+                _LOGGER.error("TAF7 profile validation failed: %s", err)
+                errors["base"] = "invalid_profile"
+            except Exception:
+                _LOGGER.exception("Unexpected error during connection test")
+                errors["base"] = "unknown"
+            finally:
+                await client.close()
+
+            if not errors:
                 self.hass.config_entries.async_update_entry(
                     self._config_entry,
                     data=new_data,
+                )
+                # Reload the integration to apply changes (Fix #2)
+                await self.hass.config_entries.async_reload(
+                    self._config_entry.entry_id
                 )
                 return self.async_create_entry(title="", data={})
 

@@ -21,10 +21,11 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
+      "invalid_profile": "TAF7-Profil nicht gefunden oder Zähler-ID nicht lesbar. Profilname prüfen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
-      "already_configured": "Dieses SMGW ist bereits konfiguriert."
+      "already_configured": "Dieser Zähler ist bereits konfiguriert."
     }
   },
   "options": {
@@ -44,6 +45,7 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
+      "invalid_profile": "TAF7-Profil nicht gefunden oder Zähler-ID nicht lesbar. Profilname prüfen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     }
   },

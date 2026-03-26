@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -14,6 +15,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_UPDATE_TIME,
@@ -27,7 +29,6 @@ from .const import (
     SENSOR_METER_EXPORT_MIDNIGHT,
     SENSOR_METER_IMPORT_0500,
     SENSOR_METER_IMPORT_MIDNIGHT,
-    STORE_KEY,
     STORE_VERSION,
 )
 from .smgw_client import DailyData, SmgwClient, SmgwClientError
@@ -40,8 +41,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     Uses async_track_time_change to trigger exactly at the configured
     time (default 00:15) instead of polling with update_interval.
-    The DataUpdateCoordinator's update_interval is set to None to
-    prevent automatic polling; we trigger manually.
     """
 
     config_entry: ConfigEntry
@@ -61,8 +60,10 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.config_entry = config_entry
         self._client = client
-        self._store = Store(hass, STORE_VERSION, STORE_KEY)
-        self._unsub_time_listener: callback | None = None
+        # Store per entry to avoid collisions (Fix #1)
+        store_key = f"{DOMAIN}_{config_entry.entry_id}"
+        self._store = Store(hass, STORE_VERSION, store_key)
+        self._unsub_time_listener: Callable[[], None] | None = None
 
     async def async_setup(self) -> None:
         """Set up the coordinator: load stored data, schedule daily fetch."""
@@ -100,7 +101,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         time_str = self.config_entry.data.get(
             CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME
         )
-        # Parse "HH:MM:SS" or "HH:MM" format
         parts = time_str.split(":")
         hour = int(parts[0]) if len(parts) > 0 else 0
         minute = int(parts[1]) if len(parts) > 1 else 15
@@ -127,7 +127,8 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_do_daily_fetch(self) -> None:
         """Perform the actual daily data fetch for yesterday."""
-        yesterday = date.today() - timedelta(days=1)
+        # Use HA timezone-aware date (Fix #9)
+        yesterday = dt_util.now().date() - timedelta(days=1)
 
         # Skip if we already have data for yesterday
         if (
@@ -150,9 +151,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = self._daily_data_to_dict(daily_data)
 
         # Persist to store
-        # Store only the essential values, not raw_readings
-        store_data = {k: v for k, v in data.items()}
-        await self._store.async_save(store_data)
+        await self._store.async_save(dict(data))
 
         _LOGGER.info(
             "Successfully fetched SMGW data for %s: "
@@ -169,11 +168,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.async_set_updated_data(data)
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Called by DataUpdateCoordinator if update_interval is set.
-
-        Since we use async_track_time_change instead, this is only called
-        for manual refreshes (e.g., from the UI).
-        """
+        """Called for manual refreshes from the UI."""
         await self._async_do_daily_fetch()
         return self.data or {}
 
