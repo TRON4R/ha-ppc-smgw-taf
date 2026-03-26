@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
 import httpx
@@ -43,6 +43,15 @@ class MeterReading:
 
 
 @dataclass
+class SmgwDeviceInfo:
+    """Device information parsed from the SMGW."""
+
+    meter_id: str  # e.g. "1lgz0072999211"
+    firmware_version: str  # e.g. "00861-34788"
+    taf7_profile_validated: bool = False
+
+
+@dataclass
 class DailyData:
     """Processed daily meter data."""
 
@@ -59,7 +68,7 @@ class DailyData:
     daily_import_standard: float  # C - B (05:00-00:00)
     daily_export_total: float  # export_next_midnight - export_midnight
     # All raw readings for archival (optional)
-    raw_readings: list[MeterReading] | None = None
+    raw_readings: list[MeterReading] = field(default_factory=list)
 
 
 class SmgwClient:
@@ -96,8 +105,11 @@ class SmgwClient:
             await self._client.aclose()
             self._client = None
 
-    async def _login(self) -> None:
-        """Log in to the SMGW and obtain session cookie + CSRF token."""
+    async def _login(self) -> str:
+        """Log in to the SMGW and obtain session cookie + CSRF token.
+
+        Returns the login page HTML for further parsing (e.g. firmware).
+        """
         client = await self._get_client()
         try:
             response = await client.get(
@@ -128,9 +140,13 @@ class SmgwClient:
             raise SmgwParseError("Could not extract CSRF token from login page")
 
         _LOGGER.debug("SMGW login successful, token obtained")
+        return response.text
 
     async def _post(self, data: dict) -> str:
-        """Send a POST request with the current session."""
+        """Send a POST request with the current session.
+
+        Wraps all httpx exceptions into SmgwClientError subtypes (Fix #6).
+        """
         if not self._token:
             raise SmgwClientError("Not logged in - no CSRF token available")
 
@@ -147,6 +163,14 @@ class SmgwClient:
         except httpx.HTTPStatusError as err:
             raise SmgwConnectionError(
                 f"HTTP error: {err.response.status_code}"
+            ) from err
+        except httpx.ConnectError as err:
+            raise SmgwConnectionError(
+                f"Connection lost during request: {err}"
+            ) from err
+        except httpx.TimeoutException as err:
+            raise SmgwConnectionError(
+                f"Timeout during request: {err}"
             ) from err
 
         # Update token from response (it may change)
@@ -177,22 +201,30 @@ class SmgwClient:
         match = re.search(r'name=["\']tkn["\']\s+value=["\']([^"\']+)', html)
         return match.group(1) if match else None
 
-    async def _get_taf7_tid(self) -> str:
-        """Navigate to TAF7 profile and get the tid for data requests.
+    @staticmethod
+    def _parse_firmware(html: str) -> str:
+        """Extract firmware version from the footer."""
+        soup = BeautifulSoup(html, "html.parser")
+        fw_div = soup.find("p", id="div_fwversion")
+        if fw_div:
+            return fw_div.get_text(strip=True)
+        return "unknown"
+
+    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
+        """Navigate to TAF7 profile and return (dropdown_tid, profile_html).
 
         Flow:
         1. POST action=tariffform -> get dropdown with profile options
         2. Find the TAF7 profile's dropdown value
-        3. POST action=showTarificationForm with that value -> get hidden tid
+        3. POST action=tariffform with tid selected -> get profile details page
         """
         # Step 1: Get profile list
         html = await self._post({"action": "tariffform"})
         soup = BeautifulSoup(html, "html.parser")
 
-        # Find the dropdown and look for our TAF7 profile
+        # Find the dropdown
         select = soup.find("select", id="tarifform_select_profile")
         if not select:
-            # Try without specific ID
             select = soup.find("select")
 
         if not select:
@@ -220,16 +252,49 @@ class SmgwClient:
             dropdown_tid,
         )
 
-        # Step 2: Load the tarification form to get the actual tid
+        # Step 2: Select the profile to get the detail page
+        # Use showTariffProfile to get the page with meter domain info
+        profile_html = await self._post(
+            {"action": "showTariffProfile", "tid": dropdown_tid}
+        )
+
+        return dropdown_tid, profile_html
+
+    @staticmethod
+    def _parse_meter_id(profile_html: str) -> str:
+        """Parse meter ID from the TAF7 profile detail page.
+
+        Looks for the domain column in the tafvalues table,
+        e.g. "1lgz0072999211.sm" -> "1lgz0072999211"
+        """
+        soup = BeautifulSoup(profile_html, "html.parser")
+
+        # Look in the tafvalues table for domain column
+        domain_td = soup.find("td", id="table_tafvalues_col_domain")
+        if domain_td:
+            domain_text = domain_td.get_text(strip=True)
+            # Strip the ".sm" suffix
+            meter_id = domain_text.removesuffix(".sm")
+            if meter_id:
+                return meter_id
+
+        raise SmgwParseError(
+            "Could not find meter ID (Zähler-Domänenname) in TAF7 profile"
+        )
+
+    async def _get_taf7_tid(self, dropdown_tid: str) -> str:
+        """Get the tid needed for data (showTarification) requests.
+
+        From the tariffform page, navigate to showTarificationForm
+        which has a different tid in a hidden field.
+        """
         html = await self._post(
             {"action": "showTarificationForm", "tid": dropdown_tid}
         )
         soup = BeautifulSoup(html, "html.parser")
 
-        # The actual tid is in a hidden input field
         tid_input = soup.find("input", {"name": "tid", "type": "hidden"})
         if not tid_input:
-            # Try broader search
             tid_input = soup.find("input", {"name": "tid"})
 
         if not tid_input or not tid_input.get("value"):
@@ -242,18 +307,12 @@ class SmgwClient:
         return actual_tid
 
     def _parse_tarification_table(self, html: str) -> list[MeterReading]:
-        """Parse the tarification HTML table into MeterReading objects.
-
-        Values are inside <input type='submit'> buttons within <td> elements,
-        NOT as text nodes.
-        """
+        """Parse the tarification HTML table into MeterReading objects."""
         soup = BeautifulSoup(html, "html.parser")
         readings: list[MeterReading] = []
 
-        # Find all table rows with tarification data
         rows = soup.find_all("tr", id="table_tafregister_line")
         if not rows:
-            # Try alternate: find table and iterate rows
             table = soup.find("table", id="tarification")
             if table:
                 rows = table.find_all("tr")
@@ -276,22 +335,19 @@ class SmgwClient:
 
     def _parse_row(self, row) -> MeterReading | None:
         """Parse a single table row into a MeterReading."""
-        # Helper to extract value from a cell (check for input button first)
+
         def cell_value(td) -> str | None:
             if td is None:
                 return None
-            # Values are in input buttons
             inp = td.find("input", id="button_tarification_register")
             if inp and inp.get("value"):
                 return inp["value"].strip()
             inp = td.find("input")
             if inp and inp.get("value"):
                 return inp["value"].strip()
-            # Fallback to text content
             text = td.get_text(strip=True)
             return text if text else None
 
-        # Extract cell values by their IDs
         ts_td = row.find("td", id="table_tafregister_col_zeitstempel")
         value_td = row.find("td", id="table_tafregister_col_wert")
         unit_td = row.find("td", id="table_tafregister_col_einheit")
@@ -305,11 +361,9 @@ class SmgwClient:
         if not all([ts_str, value_str, obis_str]):
             return None
 
-        # Only process import and export OBIS codes
         if obis_str not in (OBIS_IMPORT, OBIS_EXPORT):
             return None
 
-        # Parse timestamp (format: "2026-03-24 00:00:01")
         try:
             timestamp = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
         except ValueError:
@@ -324,30 +378,49 @@ class SmgwClient:
             quality=cell_value(quality_td) or "",
         )
 
-    async def async_fetch_daily_data(
-        self, target_date: date
-    ) -> DailyData:
-        """Fetch and process daily data for a given date.
+    async def async_validate_and_get_device_info(self) -> SmgwDeviceInfo:
+        """Validate connection, TAF7 profile, and return device info.
 
-        Queries TAF7 for the full target_date (00:00 to 00:15 next day)
-        to get all 15-minute interval readings.
-
-        Args:
-            target_date: The date to fetch data for (typically yesterday).
-
-        Returns:
-            DailyData with calculated tariff values.
-
+        Used during config flow setup. Tests login, navigates to
+        TAF7 profile, extracts meter ID and firmware version.
         """
         try:
-            # Login
+            login_html = await self._login()
+            firmware = self._parse_firmware(login_html)
+
+            # Navigate to TAF7 profile (validates profile exists)
+            _dropdown_tid, profile_html = await self._navigate_to_taf7_profile()
+
+            # Parse meter ID
+            meter_id = self._parse_meter_id(profile_html)
+
+            _LOGGER.info(
+                "SMGW validated: meter_id=%s, firmware=%s",
+                meter_id,
+                firmware,
+            )
+
+            return SmgwDeviceInfo(
+                meter_id=meter_id,
+                firmware_version=firmware,
+                taf7_profile_validated=True,
+            )
+        finally:
+            await self._logout()
+
+    async def async_fetch_daily_data(self, target_date: date) -> DailyData:
+        """Fetch and process daily data for a given date.
+
+        Queries TAF7 for the full target_date (00:00 to next day)
+        to get all 15-minute interval readings.
+        """
+        try:
             await self._login()
 
-            # Get TAF7 profile tid
-            tid = await self._get_taf7_tid()
+            # Navigate to get dropdown_tid, then get tarification tid
+            dropdown_tid, _profile_html = await self._navigate_to_taf7_profile()
+            tid = await self._get_taf7_tid(dropdown_tid)
 
-            # Query full day: from target_date 00:00 to next day 00:15
-            # This gives us all readings including the 00:00:01 of the next day
             from_str = target_date.strftime("%Y-%m-%d")
             next_day = target_date + timedelta(days=1)
             to_str = next_day.strftime("%Y-%m-%d")
@@ -365,7 +438,6 @@ class SmgwClient:
                 }
             )
 
-            # Parse all readings
             all_readings = self._parse_tarification_table(html)
 
             if not all_readings:
@@ -373,7 +445,6 @@ class SmgwClient:
                     f"No meter readings found for {target_date}"
                 )
 
-            # Extract the three key timestamps
             return self._process_readings(target_date, all_readings)
 
         finally:
@@ -384,38 +455,51 @@ class SmgwClient:
     ) -> DailyData:
         """Process raw readings into DailyData with tariff calculations.
 
-        Needs three timestamps:
-        A = 00:00:01 on target_date (import + export)
-        B = 05:00:01 on target_date (import only, for tariff split)
-        C = 00:00:01 on target_date + 1 (import + export)
+        Uses exact timestamp matching (Fix #5):
+        Finds the reading closest to XX:00:00 within each target hour,
+        with minute < 15 to avoid picking up e.g. 00:15 or 05:15 values.
+
+        A = earliest reading at hour 0 on target_date
+        B = earliest reading at hour 5 on target_date
+        C = earliest reading at hour 0 on target_date + 1
         """
         next_day = target_date + timedelta(days=1)
 
-        # Build lookup: (date, hour, obis) -> value
-        # We match by date and hour, accepting any second offset (01-04)
-        import_values: dict[tuple[date, int], float] = {}
-        export_values: dict[tuple[date, int], float] = {}
+        # Group readings by (date, hour, obis_code), keep the earliest minute
+        import_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
+        export_by_hour: dict[tuple[date, int], list[MeterReading]] = {}
 
         for r in readings:
             key = (r.timestamp.date(), r.timestamp.hour)
             if r.obis_code == OBIS_IMPORT:
-                # For 00:00 timestamps, only keep the first one per day
-                if key not in import_values:
-                    import_values[key] = r.value
+                import_by_hour.setdefault(key, []).append(r)
             elif r.obis_code == OBIS_EXPORT:
-                if key not in export_values:
-                    export_values[key] = r.value
+                export_by_hour.setdefault(key, []).append(r)
+
+        def earliest_value(
+            lookup: dict[tuple[date, int], list[MeterReading]],
+            d: date,
+            h: int,
+        ) -> float | None:
+            """Get value of earliest reading in given hour, minute < 15."""
+            candidates = lookup.get((d, h), [])
+            # Filter to readings with minute < 15 (i.e. close to XX:00)
+            valid = [r for r in candidates if r.timestamp.minute < 15]
+            if not valid:
+                # Fallback: accept any reading in that hour
+                valid = candidates
+            if not valid:
+                return None
+            # Sort by timestamp, take earliest
+            valid.sort(key=lambda r: r.timestamp)
+            return valid[0].value
 
         # Extract A, B, C
-        a_key = (target_date, 0)  # 00:00 target date
-        b_key = (target_date, 5)  # 05:00 target date
-        c_key = (next_day, 0)  # 00:00 next day
-
-        import_a = import_values.get(a_key)
-        import_b = import_values.get(b_key)
-        import_c = import_values.get(c_key)
-        export_a = export_values.get(a_key)
-        export_c = export_values.get(c_key)
+        import_a = earliest_value(import_by_hour, target_date, 0)
+        import_b = earliest_value(import_by_hour, target_date, 5)
+        import_c = earliest_value(import_by_hour, next_day, 0)
+        export_a = earliest_value(export_by_hour, target_date, 0)
+        export_c = earliest_value(export_by_hour, next_day, 0)
 
         # Validate all required values are present
         missing = []
@@ -431,12 +515,12 @@ class SmgwClient:
             missing.append(f"Export at 00:00 on {next_day}")
 
         if missing:
+            available_import = sorted(import_by_hour.keys())
+            available_export = sorted(export_by_hour.keys())
             raise SmgwParseError(
                 f"Missing required meter readings: {', '.join(missing)}. "
-                f"Available import timestamps: "
-                f"{sorted(import_values.keys())}, "
-                f"Available export timestamps: "
-                f"{sorted(export_values.keys())}"
+                f"Available import hours: {available_import}, "
+                f"Available export hours: {available_export}"
             )
 
         # Calculate daily values
@@ -474,13 +558,3 @@ class SmgwClient:
             daily_export_total=daily_export_total,
             raw_readings=readings,
         )
-
-    async def async_test_connection(self) -> bool:
-        """Test if the SMGW is reachable and credentials are valid."""
-        try:
-            await self._login()
-            return True
-        except SmgwClientError:
-            return False
-        finally:
-            await self._logout()

@@ -14,7 +14,6 @@ from .const import (
     CONF_URL,
     CONF_USERNAME,
     DEFAULT_TAF7_PROFILE_NAME,
-    DOMAIN,
 )
 from .coordinator import SmgwTafCoordinator
 from .smgw_client import SmgwClient
@@ -23,8 +22,12 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
+type SmgwTafConfigEntry = ConfigEntry[SmgwTafCoordinator]
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SmgwTafConfigEntry
+) -> bool:
     """Set up SMGW TAF from a config entry."""
     client = SmgwClient(
         base_url=entry.data[CONF_URL],
@@ -38,22 +41,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = SmgwTafCoordinator(hass, entry, client)
     await coordinator.async_setup()
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: SmgwTafConfigEntry
+) -> bool:
     """Unload a config entry."""
-    coordinator: SmgwTafCoordinator = hass.data[DOMAIN][entry.entry_id]
-    await coordinator.async_unload()
+    await entry.runtime_data.async_unload()
 
-    if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS
-    ):
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

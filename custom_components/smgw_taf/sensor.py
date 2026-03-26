@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date as date_type, datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -15,12 +15,12 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
+    CONF_METER_ID,
     SENSOR_DAILY_EXPORT_TOTAL,
     SENSOR_DAILY_IMPORT_GO,
     SENSOR_DAILY_IMPORT_STANDARD,
@@ -38,7 +38,7 @@ class SmgwTafSensorEntityDescription(SensorEntityDescription):
     """Describe a SMGW TAF sensor."""
 
     data_key: str
-    is_daily_value: bool = False  # True for sensors that reset daily
+    is_daily_value: bool = False
 
 
 SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
@@ -114,13 +114,13 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         suggested_display_precision=4,
         entity_registry_enabled_default=False,
     ),
-    # --- Date of last update (informational) ---
+    # --- Date sensor (informational) ---
     SmgwTafSensorEntityDescription(
         key="date",
         translation_key="date",
         data_key=SENSOR_DATE,
+        device_class=SensorDeviceClass.DATE,
         icon="mdi:calendar",
-        entity_registry_enabled_default=True,
     ),
 )
 
@@ -131,7 +131,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up SMGW TAF sensors from a config entry."""
-    coordinator: SmgwTafCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: SmgwTafCoordinator = config_entry.runtime_data
 
     entities = [
         SmgwTafSensor(coordinator, description, config_entry)
@@ -156,13 +156,14 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{config_entry.entry_id}_{description.key}"
+        meter_id = config_entry.data.get(CONF_METER_ID, config_entry.entry_id)
+        self._attr_unique_id = f"{meter_id}_{description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, config_entry.entry_id)},
-            name="Smart Meter Gateway",
+            identifiers={(DOMAIN, meter_id)},
+            name=f"Smart Meter {meter_id}",
             manufacturer="PPC",
-            model="SMGW",
-            entry_type=DeviceEntryType.SERVICE,
+            model="Smart Meter Gateway",
+            serial_number=meter_id,
         )
 
     @property
@@ -170,7 +171,17 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Return the sensor value."""
         if self.coordinator.data is None:
             return None
-        return self.coordinator.data.get(self.entity_description.data_key)
+        value = self.coordinator.data.get(self.entity_description.data_key)
+        # For DATE sensors, return a date object instead of string
+        if (
+            self.entity_description.device_class == SensorDeviceClass.DATE
+            and isinstance(value, str)
+        ):
+            try:
+                return date_type.fromisoformat(value)
+            except ValueError:
+                return None
+        return value
 
     @property
     def last_reset(self) -> datetime | None:
@@ -194,7 +205,6 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         if self.coordinator.data is None:
             return None
 
-        # Add the date as attribute to the daily consumption sensors
         if self.entity_description.data_key in (
             SENSOR_DAILY_IMPORT_TOTAL,
             SENSOR_DAILY_IMPORT_GO,

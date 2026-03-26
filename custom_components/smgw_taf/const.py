@@ -8,6 +8,7 @@ CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 CONF_UPDATE_TIME = "update_time"
 CONF_TAF7_PROFILE_NAME = "taf7_profile_name"
+CONF_METER_ID = "meter_id"  # Parsed from SMGW during setup
 
 # Defaults
 DEFAULT_URL = "https://192.168.100.100/cgi-bin/hanservice.cgi"
@@ -22,7 +23,6 @@ OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 TARIFF_SWITCH_HOUR = 5  # Go: 00:00-04:59, Standard: 05:00-23:59
 
 # Store
-STORE_KEY = f"{DOMAIN}_data"
 STORE_VERSION = 1
 
 # Sensor keys (used in coordinator.data dict)
