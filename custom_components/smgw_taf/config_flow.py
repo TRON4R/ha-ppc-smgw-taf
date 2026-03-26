@@ -90,7 +90,7 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
         config_entry: ConfigEntry,
     ) -> SmgwTafOptionsFlow:
         """Get the options flow for this handler."""
-        return SmgwTafOptionsFlow(config_entry)
+        return SmgwTafOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -107,7 +107,6 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
             )
 
             try:
-                # Full validation: login + TAF7 profile + meter ID (Fix #4)
                 device_info = await client.async_validate_and_get_device_info()
             except SmgwAuthError:
                 errors["base"] = "invalid_auth"
@@ -123,14 +122,13 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
                 await client.close()
 
             if not errors:
-                # Use meter_id as unique_id (Fix #3)
                 await self.async_set_unique_id(device_info.meter_id)
                 self._abort_if_unique_id_configured()
 
-                # Store meter_id and firmware in config data
                 user_input[CONF_METER_ID] = device_info.meter_id
 
-                host = user_input[CONF_URL].split("//")[1].split("/")[0]
+                # Safe URL host extraction (Fix #4)
+                host = SmgwClient.parse_host_from_url(user_input[CONF_URL])
                 return self.async_create_entry(
                     title=f"PPC SMGW ({host})",
                     data=user_input,
@@ -146,10 +144,6 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
 class SmgwTafOptionsFlow(OptionsFlow):
     """Handle options flow for SMGW TAF."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        self._config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -157,7 +151,7 @@ class SmgwTafOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            new_data = {**self._config_entry.data, **user_input}
+            new_data = {**self.config_entry.data, **user_input}
 
             client = SmgwClient(
                 base_url=new_data[CONF_URL],
@@ -184,17 +178,16 @@ class SmgwTafOptionsFlow(OptionsFlow):
 
             if not errors:
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry,
+                    self.config_entry,
                     data=new_data,
                 )
-                # Reload the integration to apply changes (Fix #2)
                 await self.hass.config_entries.async_reload(
-                    self._config_entry.entry_id
+                    self.config_entry.entry_id
                 )
                 return self.async_create_entry(title="", data={})
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_build_schema(dict(self._config_entry.data)),
+            data_schema=_build_schema(dict(self.config_entry.data)),
             errors=errors,
         )

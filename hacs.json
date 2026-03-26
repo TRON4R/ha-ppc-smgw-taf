@@ -2,5 +2,6 @@
   "name": "PPC SMGW TAF Daily Import",
   "content_in_root": false,
   "render_readme": true,
-  "country": ["DE"]
+  "country": ["DE"],
+  "homeassistant": "2026.3.0"
 }

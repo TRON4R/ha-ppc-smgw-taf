@@ -51,7 +51,15 @@ async def async_setup_entry(
 async def async_unload_entry(
     hass: HomeAssistant, entry: SmgwTafConfigEntry
 ) -> bool:
-    """Unload a config entry."""
-    await entry.runtime_data.async_unload()
+    """Unload a config entry.
 
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    Platforms are unloaded first, then the coordinator is cleaned up (Fix #2).
+    """
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+    )
+
+    if unload_ok:
+        await entry.runtime_data.async_unload()
+
+    return unload_ok
