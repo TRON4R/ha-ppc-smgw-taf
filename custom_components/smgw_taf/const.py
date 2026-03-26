@@ -22,11 +22,7 @@ OBIS_IMPORT = "1-0:1.8.0"  # Verbrauch / Grid import
 OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 
 # Store
-# Bumped to 2 in v1.1.0: sensor keys were renamed (meter_import_midnight →
-# meter_import_prev_day_close, meter_import_0500 → meter_import_tariff_1,
-# meter_export_midnight → meter_export_prev_day_close). HA's Store discards
-# data from older versions, triggering a fresh fetch with the new key schema.
-STORE_VERSION = 2
+STORE_VERSION = 1
 
 # Sensor keys (used in coordinator.data dict)
 SENSOR_DAILY_IMPORT_TOTAL = "daily_import_total"

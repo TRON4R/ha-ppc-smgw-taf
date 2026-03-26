@@ -58,7 +58,7 @@ class DailyData:
 
     date: date
     import_midnight: float
-    import_tariff_switch: float
+    import_0500: float
     import_next_midnight: float
     export_midnight: float
     export_next_midnight: float
@@ -544,7 +544,7 @@ class SmgwClient:
         return DailyData(
             date=target_date,
             import_midnight=import_a,
-            import_tariff_switch=import_b,
+            import_0500=import_b,
             import_next_midnight=import_c,
             export_midnight=export_a,
             export_next_midnight=export_c,

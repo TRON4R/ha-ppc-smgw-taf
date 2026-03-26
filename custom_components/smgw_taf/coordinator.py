@@ -161,30 +161,14 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            # Parse tariff switch time from config
+            # Parse tariff switch hour from config
             tariff_time_str = self.config_entry.data.get(
                 CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME
             )
             try:
-                tariff_time = time.fromisoformat(tariff_time_str)
+                tariff_hour = time.fromisoformat(tariff_time_str).hour
             except ValueError:
-                _LOGGER.warning(
-                    "Invalid tariff switch time '%s' in config; "
-                    "falling back to default '%s'",
-                    tariff_time_str,
-                    DEFAULT_TARIFF_SWITCH_TIME,
-                )
-                tariff_time = time.fromisoformat(DEFAULT_TARIFF_SWITCH_TIME)
-
-            if tariff_time.minute != 0 or tariff_time.second != 0:
-                _LOGGER.warning(
-                    "Tariff switch time '%s' has non-zero minutes/seconds; "
-                    "only the hour (%02d:00) is supported and will be used",
-                    tariff_time_str,
-                    tariff_time.hour,
-                )
-
-            tariff_hour = tariff_time.hour
+                tariff_hour = 5
 
             daily_data = await self._client.async_fetch_daily_data(
                 yesterday, tariff_switch_hour=tariff_hour
@@ -228,7 +212,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             SENSOR_DAILY_IMPORT_STANDARD: daily_data.daily_import_standard,
             SENSOR_DAILY_EXPORT_TOTAL: daily_data.daily_export_total,
             SENSOR_METER_IMPORT_PREV_DAY_CLOSE: daily_data.import_midnight,
-            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_tariff_switch,
+            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_0500,
             SENSOR_METER_EXPORT_PREV_DAY_CLOSE: daily_data.export_midnight,
         }
 
