@@ -24,14 +24,14 @@ OBIS_IMPORT = "1-0:1.8.0"  # Verbrauch / Grid import
 OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 
 # Store
-STORE_VERSION = 2
+STORE_VERSION = 3
 
 # Sensor keys (used in coordinator.data dict)
-SENSOR_DAILY_IMPORT_TOTAL = "daily_import_total"
-SENSOR_DAILY_IMPORT_GO = "daily_import_go"
-SENSOR_DAILY_IMPORT_STANDARD = "daily_import_standard"
-SENSOR_DAILY_EXPORT_TOTAL = "daily_export_total"
-SENSOR_METER_IMPORT_PREV_DAY_CLOSE = "meter_import_prev_day_close"
-SENSOR_METER_IMPORT_TARIFF_1 = "meter_import_tariff_1"
-SENSOR_METER_EXPORT_PREV_DAY_CLOSE = "meter_export_prev_day_close"
+SENSOR_DAILY_CONSUMPTION_TOTAL = "daily_consumption_total"
+SENSOR_DAILY_CONSUMPTION_SLOT_1 = "daily_consumption_slot_1"
+SENSOR_DAILY_CONSUMPTION_SLOT_2 = "daily_consumption_slot_2"
+SENSOR_DAILY_FEEDIN_TOTAL = "daily_feedin_total"
+SENSOR_METER_CONSUMPTION_PREV_DAY_CLOSE = "meter_consumption_prev_day_close"
+SENSOR_METER_CONSUMPTION_SWITCH_1 = "meter_consumption_switch_1"
+SENSOR_METER_FEEDIN_PREV_DAY_CLOSE = "meter_feedin_prev_day_close"
 SENSOR_DATE = "date"

@@ -57,26 +57,26 @@
   },
   "entity": {
     "sensor": {
-      "daily_import_total": {
-        "name": "Daily import total"
+      "daily_consumption_total": {
+        "name": "Daily consumption total"
       },
-      "daily_import_go": {
-        "name": "Daily import Go tariff"
+      "daily_consumption_slot_1": {
+        "name": "Daily consumption slot 1"
       },
-      "daily_import_standard": {
-        "name": "Daily import Standard tariff"
+      "daily_consumption_slot_2": {
+        "name": "Daily consumption slot 2"
       },
-      "daily_export_total": {
-        "name": "Daily export total"
+      "daily_feedin_total": {
+        "name": "Daily feed-in total"
       },
-      "meter_import_prev_day_close": {
-        "name": "Meter import previous day closing"
+      "meter_consumption_prev_day_close": {
+        "name": "Meter consumption previous day closing"
       },
-      "meter_import_tariff_1": {
-        "name": "Meter import tariff switch 1"
+      "meter_consumption_switch_1": {
+        "name": "Meter consumption tariff switch 1"
       },
-      "meter_export_prev_day_close": {
-        "name": "Meter export previous day closing"
+      "meter_feedin_prev_day_close": {
+        "name": "Meter feed-in previous day closing"
       },
       "date": {
         "name": "Daily date"

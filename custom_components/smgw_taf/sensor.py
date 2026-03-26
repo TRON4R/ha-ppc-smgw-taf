@@ -23,14 +23,14 @@ from homeassistant.util import dt as dt_util
 from .const import (
     CONF_METER_ID,
     DOMAIN,
-    SENSOR_DAILY_EXPORT_TOTAL,
-    SENSOR_DAILY_IMPORT_GO,
-    SENSOR_DAILY_IMPORT_STANDARD,
-    SENSOR_DAILY_IMPORT_TOTAL,
+    SENSOR_DAILY_CONSUMPTION_SLOT_1,
+    SENSOR_DAILY_CONSUMPTION_SLOT_2,
+    SENSOR_DAILY_CONSUMPTION_TOTAL,
+    SENSOR_DAILY_FEEDIN_TOTAL,
     SENSOR_DATE,
-    SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
-    SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
-    SENSOR_METER_IMPORT_TARIFF_1,
+    SENSOR_METER_CONSUMPTION_PREV_DAY_CLOSE,
+    SENSOR_METER_CONSUMPTION_SWITCH_1,
+    SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
 )
 from .coordinator import SmgwTafCoordinator
 
@@ -46,9 +46,9 @@ class SmgwTafSensorEntityDescription(SensorEntityDescription):
 SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
     # --- Daily consumption values (for Energy Dashboard) ---
     SmgwTafSensorEntityDescription(
-        key="daily_import_total",
-        translation_key="daily_import_total",
-        data_key=SENSOR_DAILY_IMPORT_TOTAL,
+        key="daily_consumption_total",
+        translation_key="daily_consumption_total",
+        data_key=SENSOR_DAILY_CONSUMPTION_TOTAL,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL,
@@ -56,9 +56,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         is_daily_value=True,
     ),
     SmgwTafSensorEntityDescription(
-        key="daily_import_go",
-        translation_key="daily_import_go",
-        data_key=SENSOR_DAILY_IMPORT_GO,
+        key="daily_consumption_slot_1",
+        translation_key="daily_consumption_slot_1",
+        data_key=SENSOR_DAILY_CONSUMPTION_SLOT_1,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL,
@@ -66,9 +66,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         is_daily_value=True,
     ),
     SmgwTafSensorEntityDescription(
-        key="daily_import_standard",
-        translation_key="daily_import_standard",
-        data_key=SENSOR_DAILY_IMPORT_STANDARD,
+        key="daily_consumption_slot_2",
+        translation_key="daily_consumption_slot_2",
+        data_key=SENSOR_DAILY_CONSUMPTION_SLOT_2,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL,
@@ -76,9 +76,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         is_daily_value=True,
     ),
     SmgwTafSensorEntityDescription(
-        key="daily_export_total",
-        translation_key="daily_export_total",
-        data_key=SENSOR_DAILY_EXPORT_TOTAL,
+        key="daily_feedin_total",
+        translation_key="daily_feedin_total",
+        data_key=SENSOR_DAILY_FEEDIN_TOTAL,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL,
@@ -87,9 +87,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
     ),
     # --- Absolute meter readings (informational) ---
     SmgwTafSensorEntityDescription(
-        key="meter_import_prev_day_close",
-        translation_key="meter_import_prev_day_close",
-        data_key=SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
+        key="meter_consumption_prev_day_close",
+        translation_key="meter_consumption_prev_day_close",
+        data_key=SENSOR_METER_CONSUMPTION_PREV_DAY_CLOSE,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -97,9 +97,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SmgwTafSensorEntityDescription(
-        key="meter_import_tariff_1",
-        translation_key="meter_import_tariff_1",
-        data_key=SENSOR_METER_IMPORT_TARIFF_1,
+        key="meter_consumption_switch_1",
+        translation_key="meter_consumption_switch_1",
+        data_key=SENSOR_METER_CONSUMPTION_SWITCH_1,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -107,9 +107,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SmgwTafSensorEntityDescription(
-        key="meter_export_prev_day_close",
-        translation_key="meter_export_prev_day_close",
-        data_key=SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
+        key="meter_feedin_prev_day_close",
+        translation_key="meter_feedin_prev_day_close",
+        data_key=SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,

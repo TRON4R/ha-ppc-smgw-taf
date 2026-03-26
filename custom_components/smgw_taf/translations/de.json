@@ -57,25 +57,25 @@
   },
   "entity": {
     "sensor": {
-      "daily_import_total": {
+      "daily_consumption_total": {
         "name": "Tagesverbrauch gesamt"
       },
-      "daily_import_go": {
-        "name": "Tagesverbrauch Go-Tarif"
+      "daily_consumption_slot_1": {
+        "name": "Tagesverbrauch Zeitfenster 1"
       },
-      "daily_import_standard": {
-        "name": "Tagesverbrauch Standard-Tarif"
+      "daily_consumption_slot_2": {
+        "name": "Tagesverbrauch Zeitfenster 2"
       },
-      "daily_export_total": {
+      "daily_feedin_total": {
         "name": "Tageseinspeisung gesamt"
       },
-      "meter_import_prev_day_close": {
+      "meter_consumption_prev_day_close": {
         "name": "Zählerstand Verbrauch Endstand Vortag"
       },
-      "meter_import_tariff_1": {
+      "meter_consumption_switch_1": {
         "name": "Zählerstand Verbrauch Tarifwechsel 1"
       },
-      "meter_export_prev_day_close": {
+      "meter_feedin_prev_day_close": {
         "name": "Zählerstand Einspeisung Endstand Vortag"
       },
       "date": {

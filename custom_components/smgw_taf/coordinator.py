@@ -24,14 +24,14 @@ from .const import (
     DEFAULT_TARIFF_SWITCH_MINUTE,
     DEFAULT_UPDATE_TIME,
     DOMAIN,
-    SENSOR_DAILY_EXPORT_TOTAL,
-    SENSOR_DAILY_IMPORT_GO,
-    SENSOR_DAILY_IMPORT_STANDARD,
-    SENSOR_DAILY_IMPORT_TOTAL,
+    SENSOR_DAILY_CONSUMPTION_SLOT_1,
+    SENSOR_DAILY_CONSUMPTION_SLOT_2,
+    SENSOR_DAILY_CONSUMPTION_TOTAL,
+    SENSOR_DAILY_FEEDIN_TOTAL,
     SENSOR_DATE,
-    SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
-    SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
-    SENSOR_METER_IMPORT_TARIFF_1,
+    SENSOR_METER_CONSUMPTION_PREV_DAY_CLOSE,
+    SENSOR_METER_CONSUMPTION_SWITCH_1,
+    SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
     STORE_VERSION,
 )
 from .smgw_client import DailyData, SmgwClient, SmgwClientError
@@ -236,13 +236,13 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Convert DailyData to a flat dict for coordinator.data."""
         return {
             SENSOR_DATE: daily_data.date.isoformat(),
-            SENSOR_DAILY_IMPORT_TOTAL: daily_data.daily_import_total,
-            SENSOR_DAILY_IMPORT_GO: daily_data.daily_import_go,
-            SENSOR_DAILY_IMPORT_STANDARD: daily_data.daily_import_standard,
-            SENSOR_DAILY_EXPORT_TOTAL: daily_data.daily_export_total,
-            SENSOR_METER_IMPORT_PREV_DAY_CLOSE: daily_data.import_midnight,
-            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_tariff_switch,
-            SENSOR_METER_EXPORT_PREV_DAY_CLOSE: daily_data.export_midnight,
+            SENSOR_DAILY_CONSUMPTION_TOTAL: daily_data.daily_import_total,
+            SENSOR_DAILY_CONSUMPTION_SLOT_1: daily_data.daily_import_go,
+            SENSOR_DAILY_CONSUMPTION_SLOT_2: daily_data.daily_import_standard,
+            SENSOR_DAILY_FEEDIN_TOTAL: daily_data.daily_export_total,
+            SENSOR_METER_CONSUMPTION_PREV_DAY_CLOSE: daily_data.import_midnight,
+            SENSOR_METER_CONSUMPTION_SWITCH_1: daily_data.import_tariff_switch,
+            SENSOR_METER_FEEDIN_PREV_DAY_CLOSE: daily_data.export_midnight,
         }
 
     async def async_unload(self) -> None:

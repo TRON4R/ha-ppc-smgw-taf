@@ -64,13 +64,13 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 | Sensor | Description | Device Class | State Class |
 |---|---|---|---|
-| Daily import total | Yesterday's total consumption | `energy` | `total` |
-| Daily import Go tariff | Consumption during Go tariff hours | `energy` | `total` |
-| Daily import Standard tariff | Consumption during Standard tariff hours | `energy` | `total` |
-| Daily export total | Yesterday's total feed-in | `energy` | `total` |
-| Meter import previous day closing | Absolute reading at start of day (00:00) | `energy` | `total_increasing` |
-| Meter import tariff switch 1 | Absolute reading at tariff switch time | `energy` | `total_increasing` |
-| Meter export previous day closing | Absolute export reading at start of day (00:00) | `energy` | `total_increasing` |
+| Daily consumption total | Yesterday's total consumption | `energy` | `total` |
+| Daily consumption slot 1 | Consumption during slot 1 (midnight → tariff switch) | `energy` | `total` |
+| Daily consumption slot 2 | Consumption during slot 2 (tariff switch → midnight) | `energy` | `total` |
+| Daily feed-in total | Yesterday's total feed-in | `energy` | `total` |
+| Meter consumption previous day closing | Absolute reading at start of day (00:00) | `energy` | `total_increasing` |
+| Meter consumption tariff switch 1 | Absolute reading at tariff switch time | `energy` | `total_increasing` |
+| Meter feed-in previous day closing | Absolute export reading at start of day (00:00) | `energy` | `total_increasing` |
 | Daily date | Date of the last fetched data | `date` | — |
 
 The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
