@@ -6,14 +6,12 @@ DOMAIN = "smgw_taf"
 CONF_URL = "url"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
-CONF_UPDATE_HOUR = "update_hour"
-CONF_UPDATE_MINUTE = "update_minute"
+CONF_UPDATE_TIME = "update_time"
 CONF_TAF7_PROFILE_NAME = "taf7_profile_name"
 
 # Defaults
 DEFAULT_URL = "https://192.168.100.100/cgi-bin/hanservice.cgi"
-DEFAULT_UPDATE_HOUR = 0
-DEFAULT_UPDATE_MINUTE = 15
+DEFAULT_UPDATE_TIME = "00:15:00"
 DEFAULT_TAF7_PROFILE_NAME = "TAF7_OCT_B+E"
 
 # OBIS codes

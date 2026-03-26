@@ -16,10 +16,8 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import (
-    CONF_UPDATE_HOUR,
-    CONF_UPDATE_MINUTE,
-    DEFAULT_UPDATE_HOUR,
-    DEFAULT_UPDATE_MINUTE,
+    CONF_UPDATE_TIME,
+    DEFAULT_UPDATE_TIME,
     DOMAIN,
     SENSOR_DAILY_EXPORT_TOTAL,
     SENSOR_DAILY_IMPORT_GO,
@@ -99,10 +97,13 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._unsub_time_listener:
             self._unsub_time_listener()
 
-        hour = self.config_entry.data.get(CONF_UPDATE_HOUR, DEFAULT_UPDATE_HOUR)
-        minute = self.config_entry.data.get(
-            CONF_UPDATE_MINUTE, DEFAULT_UPDATE_MINUTE
+        time_str = self.config_entry.data.get(
+            CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME
         )
+        # Parse "HH:MM:SS" or "HH:MM" format
+        parts = time_str.split(":")
+        hour = int(parts[0]) if len(parts) > 0 else 0
+        minute = int(parts[1]) if len(parts) > 1 else 15
 
         self._unsub_time_listener = async_track_time_change(
             self.hass,

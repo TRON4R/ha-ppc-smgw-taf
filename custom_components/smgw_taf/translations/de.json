@@ -9,14 +9,12 @@
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
-          "update_hour": "Abruf-Stunde (0-23)",
-          "update_minute": "Abruf-Minute (0-59)"
+          "update_time": "Abrufzeit"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "taf7_profile_name": "Name des TAF7-Auswertungsprofils wie im SMGW konfiguriert",
-          "update_hour": "Stunde des Tagesabrufs",
-          "update_minute": "Minute des Tagesabrufs"
+          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
         }
       }
     },
@@ -39,8 +37,7 @@
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
-          "update_hour": "Abruf-Stunde (0-23)",
-          "update_minute": "Abruf-Minute (0-59)"
+          "update_time": "Abrufzeit"
         }
       }
     },
@@ -65,13 +62,13 @@
         "name": "Tageseinspeisung gesamt"
       },
       "meter_import_midnight": {
-        "name": "Zählerstand Verbrauch (Mitternacht)"
+        "name": "Zählerstand Verbrauch (0:00 Uhr)"
       },
       "meter_import_0500": {
-        "name": "Zählerstand Verbrauch (05:00)"
+        "name": "Zählerstand Verbrauch (5:00 Uhr)"
       },
       "meter_export_midnight": {
-        "name": "Zählerstand Einspeisung (Mitternacht)"
+        "name": "Zählerstand Einspeisung (0:00 Uhr)"
       },
       "date": {
         "name": "Abrufdatum"
