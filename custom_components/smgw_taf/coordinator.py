@@ -62,7 +62,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Store per entry to avoid collisions
         store_key = f"{DOMAIN}_{config_entry.entry_id}"
         self._store = Store(hass, STORE_VERSION, store_key)
-        self._unsub_time_listener: CALLBACK_TYPE | None = None  # Fix #5
+        self._unsub_time_listener: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Set up the coordinator: load stored data, schedule daily fetch."""

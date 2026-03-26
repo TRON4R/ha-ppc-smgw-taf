@@ -190,7 +190,7 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Return the time when the sensor was last reset.
 
         For daily value sensors, this is midnight of the measured date.
-        Returns timezone-aware datetime using HA's timezone (Fix #1).
+        Returns timezone-aware datetime using HA's timezone.
         """
         if not self.entity_description.is_daily_value:
             return None

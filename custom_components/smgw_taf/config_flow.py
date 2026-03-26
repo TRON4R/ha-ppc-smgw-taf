@@ -127,7 +127,6 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 user_input[CONF_METER_ID] = device_info.meter_id
 
-                # Safe URL host extraction (Fix #4)
                 host = SmgwClient.parse_host_from_url(user_input[CONF_URL])
                 return self.async_create_entry(
                     title=f"PPC SMGW ({host})",

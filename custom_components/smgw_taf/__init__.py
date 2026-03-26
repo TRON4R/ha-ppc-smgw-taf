@@ -53,7 +53,7 @@ async def async_unload_entry(
 ) -> bool:
     """Unload a config entry.
 
-    Platforms are unloaded first, then the coordinator is cleaned up (Fix #2).
+    Platforms are unloaded first, then the coordinator is cleaned up.
     """
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS

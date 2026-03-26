@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import re
 import urllib.parse
-import warnings
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
@@ -89,17 +88,8 @@ class SmgwClient:
         self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create the httpx client.
-
-        Suppresses SSL warnings for self-signed SMGW certificates (Fix #9).
-        """
+        """Get or create the httpx client."""
         if self._client is None or self._client.is_closed:
-            # Suppress InsecureRequestWarning for self-signed SMGW certs
-            warnings.filterwarnings(
-                "ignore",
-                message="Unverified HTTPS request",
-                module="urllib3",
-            )
             self._client = httpx.AsyncClient(
                 verify=False,  # SMGW uses self-signed certificates
                 timeout=30.0,
@@ -117,7 +107,7 @@ class SmgwClient:
         """Log in to the SMGW and obtain session cookie + CSRF token.
 
         Returns the login page HTML for further parsing (e.g. firmware).
-        All httpx exceptions are wrapped into SmgwClientError subtypes (Fix #3).
+        All httpx exceptions are wrapped into SmgwClientError subtypes.
         """
         client = await self._get_client()
         try:
@@ -158,7 +148,7 @@ class SmgwClient:
     async def _post(self, data: dict) -> str:
         """Send a POST request with the current session.
 
-        All httpx exceptions are wrapped into SmgwClientError subtypes (Fix #3/#6).
+        All httpx exceptions are wrapped into SmgwClientError subtypes.
         """
         if not self._token:
             raise SmgwClientError("Not logged in - no CSRF token available")
@@ -210,7 +200,7 @@ class SmgwClient:
     def _parse_token(self, html: str) -> str | None:
         """Extract CSRF token from HTML hidden input field.
 
-        Improved regex fallback to handle any attribute order (Fix #13).
+        Improved regex fallback to handle any attribute order.
         """
         soup = BeautifulSoup(html, "html.parser")
         token_input = soup.find("input", {"name": "tkn"})
@@ -241,7 +231,7 @@ class SmgwClient:
 
     @staticmethod
     def parse_host_from_url(url: str) -> str:
-        """Safely extract host from URL (Fix #4)."""
+        """Safely extract host from URL."""
         try:
             parsed = urllib.parse.urlparse(url)
             return parsed.hostname or "unknown"
@@ -462,9 +452,9 @@ class SmgwClient:
     ) -> DailyData:
         """Process raw readings into DailyData with tariff calculations.
 
-        Uses exact timestamp matching (Fix #5):
-        Finds the reading closest to XX:00:00 within each target hour,
-        with minute < 15 to avoid picking up e.g. 00:15 or 05:15 values.
+        Uses exact timestamp matching: finds the reading closest to XX:00:00
+        within each target hour, with minute < 15 to avoid picking up values
+        such as 00:15 or 05:15.
         """
         next_day = target_date + timedelta(days=1)
 
