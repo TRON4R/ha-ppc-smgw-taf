@@ -210,15 +210,12 @@ class SmgwClient:
             return fw_div.get_text(strip=True)
         return "unknown"
 
-    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
-        """Navigate to TAF7 profile and return (dropdown_tid, profile_html).
+    async def _get_taf7_dropdown_tid(self) -> str:
+        """Get the dropdown tid for the configured TAF7 profile.
 
-        Flow:
-        1. POST action=tariffform -> get dropdown with profile options
-        2. Find the TAF7 profile's dropdown value
-        3. POST action=tariffform with tid selected -> get profile details page
+        POSTs action=tariffform to get the profile list, then finds the
+        dropdown value for the configured profile name.
         """
-        # Step 1: Get profile list
         html = await self._post({"action": "tariffform"})
         soup = BeautifulSoup(html, "html.parser")
 
@@ -252,8 +249,19 @@ class SmgwClient:
             dropdown_tid,
         )
 
-        # Step 2: Select the profile to get the detail page
-        # Use showTariffProfile to get the page with meter domain info
+        return dropdown_tid
+
+    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
+        """Navigate to TAF7 profile and return (dropdown_tid, profile_html).
+
+        Flow:
+        1. POST action=tariffform -> get dropdown with profile options
+        2. Find the TAF7 profile's dropdown value
+        3. POST action=showTariffProfile with that value -> get profile details page
+        """
+        dropdown_tid = await self._get_taf7_dropdown_tid()
+
+        # Load the profile detail page (contains meter domain info)
         profile_html = await self._post(
             {"action": "showTariffProfile", "tid": dropdown_tid}
         )
@@ -417,8 +425,8 @@ class SmgwClient:
         try:
             await self._login()
 
-            # Navigate to get dropdown_tid, then get tarification tid
-            dropdown_tid, _profile_html = await self._navigate_to_taf7_profile()
+            # Get the dropdown_tid directly (no profile detail page needed)
+            dropdown_tid = await self._get_taf7_dropdown_tid()
             tid = await self._get_taf7_tid(dropdown_tid)
 
             from_str = target_date.strftime("%Y-%m-%d")

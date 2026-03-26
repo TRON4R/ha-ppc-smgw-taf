@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_METER_ID,
@@ -196,7 +197,7 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
             return None
         date_str = self.coordinator.data.get(SENSOR_DATE)
         if date_str:
-            return datetime.fromisoformat(date_str + "T00:00:00")
+            return dt_util.start_of_local_day(date_type.fromisoformat(date_str))
         return None
 
     @property
