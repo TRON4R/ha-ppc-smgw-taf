@@ -1,8 +1,12 @@
 # ha-ppc-smgw-taf
 
+<img src="custom_components/smgw_taf/brand/icon.png" alt="SMGW Icon" width="128" align="left" style="margin-right: 16px;">
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 Home Assistant custom integration for reading **certified daily meter values** from PPC Smart Meter Gateways via the HAN interface.
+
+<br clear="left">
 
 ## What it does
 
@@ -63,10 +67,10 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 | Daily import Go tariff | Consumption 00:00–04:59 | `total` |
 | Daily import Standard tariff | Consumption 05:00–23:59 | `total` |
 | Daily export total | Yesterday's total feed-in | `total` |
-| Meter import (midnight) | Absolute reading at 00:00 | `total_increasing` |
-| Meter import (05:00) | Absolute reading at 05:00 | `total_increasing` |
-| Meter export (midnight) | Absolute reading at 00:00 | `total_increasing` |
-| Data date | Date of the last fetched data | — |
+| Meter import (0:00) | Absolute reading at 00:00 | `total_increasing` |
+| Meter import (5:00) | Absolute reading at 05:00 | `total_increasing` |
+| Meter export (0:00) | Absolute reading at 00:00 | `total_increasing` |
+| Daily date | Date of the last fetched data | — |
 
 The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
 

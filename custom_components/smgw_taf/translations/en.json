@@ -71,7 +71,7 @@
         "name": "Meter export (0:00)"
       },
       "date": {
-        "name": "Fetch date"
+        "name": "Daily date"
       }
     }
   }

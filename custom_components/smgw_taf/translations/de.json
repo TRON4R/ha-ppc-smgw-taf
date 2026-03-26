@@ -71,7 +71,7 @@
         "name": "Zählerstand Einspeisung (0:00 Uhr)"
       },
       "date": {
-        "name": "Abrufdatum"
+        "name": "Tagesdatum"
       }
     }
   }
