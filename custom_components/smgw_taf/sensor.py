@@ -54,6 +54,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=4,
         is_daily_value=True,
+        icon="mdi:home-lightning-bolt",
     ),
     SmgwTafSensorEntityDescription(
         key="daily_consumption_slot_1",
@@ -64,6 +65,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=4,
         is_daily_value=True,
+        icon="mdi:home-lightning-bolt",
     ),
     SmgwTafSensorEntityDescription(
         key="daily_consumption_slot_2",
@@ -74,6 +76,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=4,
         is_daily_value=True,
+        icon="mdi:home-lightning-bolt",
     ),
     SmgwTafSensorEntityDescription(
         key="daily_feedin_total",
@@ -84,6 +87,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=4,
         is_daily_value=True,
+        icon="mdi:solar-power",
     ),
     # --- Absolute meter readings (informational) ---
     SmgwTafSensorEntityDescription(
@@ -95,6 +99,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
         entity_registry_enabled_default=False,
+        icon="mdi:meter-electric",
     ),
     SmgwTafSensorEntityDescription(
         key="meter_consumption_switch_1",
@@ -105,6 +110,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
         entity_registry_enabled_default=False,
+        icon="mdi:meter-electric",
     ),
     SmgwTafSensorEntityDescription(
         key="meter_feedin_prev_day_close",
@@ -115,6 +121,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
         entity_registry_enabled_default=False,
+        icon="mdi:meter-electric-outline",
     ),
     # --- Date sensor (informational) ---
     SmgwTafSensorEntityDescription(
