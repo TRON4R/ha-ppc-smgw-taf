@@ -9,11 +9,13 @@
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
+          "tariff_switch_time": "Start Standard-Tarif",
           "update_time": "Abrufzeit"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "taf7_profile_name": "Name des TAF7-Auswertungsprofils wie im SMGW konfiguriert",
+          "tariff_switch_time": "Uhrzeit, ab der der Standard-Tarif gilt (Go-Tarif läuft von 00:00 bis zu dieser Uhrzeit)",
           "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
         }
       }
@@ -32,12 +34,13 @@
     "step": {
       "init": {
         "title": "SMGW-Einstellungen ändern",
-        "description": "Zugangsdaten und Abrufzeit anpassen.",
+        "description": "Zugangsdaten, Tarifzeit und Abrufzeit anpassen.",
         "data": {
           "url": "URL",
           "username": "Benutzername",
           "password": "Passwort",
           "taf7_profile_name": "TAF7-Profilname",
+          "tariff_switch_time": "Start Standard-Tarif",
           "update_time": "Abrufzeit"
         }
       }
@@ -63,14 +66,14 @@
       "daily_export_total": {
         "name": "Tageseinspeisung gesamt"
       },
-      "meter_import_midnight": {
-        "name": "Zählerstand Verbrauch (0:00 Uhr)"
+      "meter_import_prev_day_close": {
+        "name": "Zählerstand Verbrauch Endstand Vortag"
       },
-      "meter_import_0500": {
-        "name": "Zählerstand Verbrauch (5:00 Uhr)"
+      "meter_import_tariff_1": {
+        "name": "Zählerstand Verbrauch Tarifwechsel 1"
       },
-      "meter_export_midnight": {
-        "name": "Zählerstand Einspeisung (0:00 Uhr)"
+      "meter_export_prev_day_close": {
+        "name": "Zählerstand Einspeisung Endstand Vortag"
       },
       "date": {
         "name": "Tagesdatum"

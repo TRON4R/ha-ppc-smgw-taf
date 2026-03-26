@@ -9,11 +9,13 @@
           "username": "Username",
           "password": "Password",
           "taf7_profile_name": "TAF7 profile name",
+          "tariff_switch_time": "Standard tariff start time",
           "update_time": "Fetch time"
         },
         "data_description": {
           "url": "URL of the SMGW HAN interface (default: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "taf7_profile_name": "Name of the TAF7 evaluation profile as configured in the SMGW",
+          "tariff_switch_time": "Time when the standard tariff begins (Go tariff runs from 00:00 until this time)",
           "update_time": "Time of day for the automatic daily data fetch"
         }
       }
@@ -32,12 +34,13 @@
     "step": {
       "init": {
         "title": "SMGW Settings",
-        "description": "Update credentials and fetch time.",
+        "description": "Update credentials, tariff time and fetch time.",
         "data": {
           "url": "URL",
           "username": "Username",
           "password": "Password",
           "taf7_profile_name": "TAF7 profile name",
+          "tariff_switch_time": "Standard tariff start time",
           "update_time": "Fetch time"
         }
       }
@@ -63,14 +66,14 @@
       "daily_export_total": {
         "name": "Daily export total"
       },
-      "meter_import_midnight": {
-        "name": "Meter import (0:00)"
+      "meter_import_prev_day_close": {
+        "name": "Meter import previous day closing"
       },
-      "meter_import_0500": {
-        "name": "Meter import (5:00)"
+      "meter_import_tariff_1": {
+        "name": "Meter import tariff switch 1"
       },
-      "meter_export_midnight": {
-        "name": "Meter export (0:00)"
+      "meter_export_prev_day_close": {
+        "name": "Meter export previous day closing"
       },
       "date": {
         "name": "Daily date"

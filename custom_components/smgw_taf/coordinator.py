@@ -17,7 +17,9 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_TARIFF_SWITCH_TIME,
     CONF_UPDATE_TIME,
+    DEFAULT_TARIFF_SWITCH_TIME,
     DEFAULT_UPDATE_TIME,
     DOMAIN,
     SENSOR_DAILY_EXPORT_TOTAL,
@@ -25,9 +27,9 @@ from .const import (
     SENSOR_DAILY_IMPORT_STANDARD,
     SENSOR_DAILY_IMPORT_TOTAL,
     SENSOR_DATE,
-    SENSOR_METER_EXPORT_MIDNIGHT,
-    SENSOR_METER_IMPORT_0500,
-    SENSOR_METER_IMPORT_MIDNIGHT,
+    SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
+    SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
+    SENSOR_METER_IMPORT_TARIFF_1,
     STORE_VERSION,
 )
 from .smgw_client import DailyData, SmgwClient, SmgwClientError
@@ -159,7 +161,34 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            daily_data = await self._client.async_fetch_daily_data(yesterday)
+            # Parse tariff switch time from config
+            tariff_time_str = self.config_entry.data.get(
+                CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME
+            )
+            try:
+                tariff_time = time.fromisoformat(tariff_time_str)
+            except ValueError:
+                _LOGGER.warning(
+                    "Invalid tariff switch time '%s' in config; "
+                    "falling back to default '%s'",
+                    tariff_time_str,
+                    DEFAULT_TARIFF_SWITCH_TIME,
+                )
+                tariff_time = time.fromisoformat(DEFAULT_TARIFF_SWITCH_TIME)
+
+            if tariff_time.minute != 0 or tariff_time.second != 0:
+                _LOGGER.warning(
+                    "Tariff switch time '%s' has non-zero minutes/seconds; "
+                    "only the hour (%02d:00) is supported and will be used",
+                    tariff_time_str,
+                    tariff_time.hour,
+                )
+
+            tariff_hour = tariff_time.hour
+
+            daily_data = await self._client.async_fetch_daily_data(
+                yesterday, tariff_switch_hour=tariff_hour
+            )
         except SmgwClientError as err:
             raise UpdateFailed(
                 f"Failed to fetch SMGW data for {yesterday}: {err}"
@@ -198,9 +227,9 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             SENSOR_DAILY_IMPORT_GO: daily_data.daily_import_go,
             SENSOR_DAILY_IMPORT_STANDARD: daily_data.daily_import_standard,
             SENSOR_DAILY_EXPORT_TOTAL: daily_data.daily_export_total,
-            SENSOR_METER_IMPORT_MIDNIGHT: daily_data.import_midnight,
-            SENSOR_METER_IMPORT_0500: daily_data.import_0500,
-            SENSOR_METER_EXPORT_MIDNIGHT: daily_data.export_midnight,
+            SENSOR_METER_IMPORT_PREV_DAY_CLOSE: daily_data.import_midnight,
+            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_tariff_switch,
+            SENSOR_METER_EXPORT_PREV_DAY_CLOSE: daily_data.export_midnight,
         }
 
     async def async_unload(self) -> None:

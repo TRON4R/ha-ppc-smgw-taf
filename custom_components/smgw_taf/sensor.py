@@ -28,9 +28,9 @@ from .const import (
     SENSOR_DAILY_IMPORT_STANDARD,
     SENSOR_DAILY_IMPORT_TOTAL,
     SENSOR_DATE,
-    SENSOR_METER_EXPORT_MIDNIGHT,
-    SENSOR_METER_IMPORT_0500,
-    SENSOR_METER_IMPORT_MIDNIGHT,
+    SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
+    SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
+    SENSOR_METER_IMPORT_TARIFF_1,
 )
 from .coordinator import SmgwTafCoordinator
 
@@ -87,9 +87,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
     ),
     # --- Absolute meter readings (informational) ---
     SmgwTafSensorEntityDescription(
-        key="meter_import_midnight",
-        translation_key="meter_import_midnight",
-        data_key=SENSOR_METER_IMPORT_MIDNIGHT,
+        key="meter_import_prev_day_close",
+        translation_key="meter_import_prev_day_close",
+        data_key=SENSOR_METER_IMPORT_PREV_DAY_CLOSE,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -97,9 +97,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SmgwTafSensorEntityDescription(
-        key="meter_import_0500",
-        translation_key="meter_import_0500",
-        data_key=SENSOR_METER_IMPORT_0500,
+        key="meter_import_tariff_1",
+        translation_key="meter_import_tariff_1",
+        data_key=SENSOR_METER_IMPORT_TARIFF_1,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -107,9 +107,9 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SmgwTafSensorEntityDescription(
-        key="meter_export_midnight",
-        translation_key="meter_export_midnight",
-        data_key=SENSOR_METER_EXPORT_MIDNIGHT,
+        key="meter_export_prev_day_close",
+        translation_key="meter_export_prev_day_close",
+        data_key=SENSOR_METER_EXPORT_PREV_DAY_CLOSE,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -174,7 +174,6 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         if self.coordinator.data is None:
             return None
         value = self.coordinator.data.get(self.entity_description.data_key)
-        # For DATE sensors, return a date object instead of string
         if (
             self.entity_description.device_class == SensorDeviceClass.DATE
             and isinstance(value, str)
@@ -198,7 +197,6 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
             return None
         date_str = self.coordinator.data.get(SENSOR_DATE)
         if date_str:
-            # Create timezone-aware datetime using HA's configured timezone
             naive = datetime.fromisoformat(date_str + "T00:00:00")
             return dt_util.as_local(
                 naive.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)

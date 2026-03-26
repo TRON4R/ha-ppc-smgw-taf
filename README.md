@@ -13,8 +13,8 @@ Home Assistant custom integration for reading **certified daily meter values** f
 This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the TAF7 evaluation profile. It calculates:
 
 - **Daily grid import (total)** — total electricity consumed
-- **Daily grid import (Go tariff)** — consumption during Octopus Go hours (00:00–04:59)
-- **Daily grid import (Standard tariff)** — consumption during standard hours (05:00–23:59)
+- **Daily grid import (Go tariff)** — consumption during the reduced-rate period (default: 00:00–04:59)
+- **Daily grid import (Standard tariff)** — consumption during the standard-rate period (default: 05:00–23:59)
 - **Daily grid export (total)** — total electricity fed back to grid
 
 All sensors are compatible with the Home Assistant **Energy Dashboard**.
@@ -25,7 +25,7 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 - **One fetch per day** (5 HTTP requests total, at a configurable time)
 - **Certified values** from TAF7 interval readings (not live meter snapshots)
-- **Accurate tariff split** using the exact 05:00 meter reading from the SMGW
+- **Accurate tariff split** using the exact meter reading at the configurable tariff switch time from the SMGW
 - **No timing issues** — values come from the SMGW's own daily boundaries, not HA's clock
 
 ## Requirements
@@ -57,26 +57,27 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
    - **URL**: Your SMGW HAN interface URL (default: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
    - **Username** and **Password**: Your HAN credentials
    - **TAF7 profile name**: The name of your TAF7 evaluation profile (default: `TAF7_OCT_B+E`)
-   - **Fetch time**: Hour and minute for the daily data fetch (default: 00:15)
+   - **Standard tariff start time**: When the standard tariff begins (default: 05:00, configurable)
+   - **Fetch time**: Time of the daily data fetch (default: 00:15)
 
 ## Sensors
 
 | Sensor | Description | Device Class | State Class |
 |---|---|---|---|
 | Daily import total | Yesterday's total consumption | `energy` | `total` |
-| Daily import Go tariff | Consumption 00:00–04:59 | `energy` | `total` |
-| Daily import Standard tariff | Consumption 05:00–23:59 | `energy` | `total` |
+| Daily import Go tariff | Consumption during Go tariff hours | `energy` | `total` |
+| Daily import Standard tariff | Consumption during Standard tariff hours | `energy` | `total` |
 | Daily export total | Yesterday's total feed-in | `energy` | `total` |
-| Meter import (0:00) | Absolute reading at 00:00 | `energy` | `total_increasing` |
-| Meter import (5:00) | Absolute reading at 05:00 | `energy` | `total_increasing` |
-| Meter export (0:00) | Absolute reading at 00:00 | `energy` | `total_increasing` |
+| Meter import previous day closing | Absolute reading at start of day (00:00) | `energy` | `total_increasing` |
+| Meter import tariff switch 1 | Absolute reading at tariff switch time | `energy` | `total_increasing` |
+| Meter export previous day closing | Absolute export reading at start of day (00:00) | `energy` | `total_increasing` |
 | Daily date | Date of the last fetched data | `date` | — |
 
 The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
 
 ## Intended use case
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split at 05:00 is hardcoded in the current version. If you are using a different tariff structure or a different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) to discuss how to make this configurable.
+This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-taf/pulls) to discuss how to make this work for your setup.
 
 ## License
 
