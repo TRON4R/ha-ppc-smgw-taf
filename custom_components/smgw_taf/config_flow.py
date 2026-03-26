@@ -87,7 +87,7 @@ def _build_schema(
                     autocomplete="current-password",
                 )
             ),
-            vol.Optional(
+            vol.Required(
                 CONF_TAF7_PROFILE_NAME,
                 default=d.get(CONF_TAF7_PROFILE_NAME, DEFAULT_TAF7_PROFILE_NAME),
             ): str,
@@ -215,6 +215,14 @@ class SmgwTafOptionsFlow(OptionsFlow):
 
             try:
                 device_info = await client.async_validate_and_get_device_info()
+                old_meter_id = self.config_entry.data.get(CONF_METER_ID)
+                if old_meter_id and device_info.meter_id != old_meter_id:
+                    _LOGGER.warning(
+                        "Meter ID changed from %s to %s - this may indicate "
+                        "a different physical meter. Updating entry.",
+                        old_meter_id,
+                        device_info.meter_id,
+                    )
                 new_data[CONF_METER_ID] = device_info.meter_id
             except SmgwAuthError:
                 errors["base"] = "invalid_auth"

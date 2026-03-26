@@ -82,7 +82,8 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Schedule the daily fetch
         self._schedule_daily_fetch()
 
-        # Check if we need to fetch: either no data at all, or stale data
+        # Check if we need to fetch: either no data at all, or stale data,
+        # or tariff time has changed since last fetch
         yesterday = dt_util.now().date() - timedelta(days=1)
         stored_date = self.data.get(SENSOR_DATE) if self.data else None
         needs_fetch = False
@@ -99,6 +100,27 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 yesterday,
             )
             needs_fetch = True
+        else:
+            # Check if tariff time has changed since last stored data
+            current_tariff = (
+                int(self.config_entry.data.get(
+                    CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR
+                )),
+                int(self.config_entry.data.get(
+                    CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE
+                )),
+            )
+            stored_tariff = (
+                self.data.get("_tariff_hour"),
+                self.data.get("_tariff_minute"),
+            )
+            if stored_tariff != current_tariff:
+                _LOGGER.info(
+                    "Tariff time changed from %s to %s - refetching data",
+                    stored_tariff,
+                    current_tariff,
+                )
+                needs_fetch = True
 
         if needs_fetch:
             try:
@@ -151,10 +173,19 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Perform the actual daily data fetch for yesterday."""
         yesterday = dt_util.now().date() - timedelta(days=1)
 
-        # Skip if we already have data for yesterday
+        # Skip if we already have data for yesterday with same tariff time
+        tariff_hour = int(self.config_entry.data.get(
+            CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR
+        ))
+        tariff_minute = int(self.config_entry.data.get(
+            CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE
+        ))
+
         if (
             self.data
             and self.data.get(SENSOR_DATE) == yesterday.isoformat()
+            and self.data.get("_tariff_hour") == tariff_hour
+            and self.data.get("_tariff_minute") == tariff_minute
         ):
             _LOGGER.debug(
                 "Already have data for %s, skipping fetch", yesterday
@@ -162,13 +193,6 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            tariff_hour = int(self.config_entry.data.get(
-                CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR
-            ))
-            tariff_minute = int(self.config_entry.data.get(
-                CONF_TARIFF_SWITCH_MINUTE, DEFAULT_TARIFF_SWITCH_MINUTE
-            ))
-
             daily_data = await self._client.async_fetch_daily_data(
                 yesterday,
                 tariff_switch_hour=tariff_hour,
@@ -180,6 +204,10 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ) from err
 
         data = self._daily_data_to_dict(daily_data)
+
+        # Store tariff time alongside data for change detection
+        data["_tariff_hour"] = tariff_hour
+        data["_tariff_minute"] = tariff_minute
 
         # Persist to store
         await self._store.async_save(dict(data))

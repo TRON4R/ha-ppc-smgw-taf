@@ -251,9 +251,12 @@ class SmgwClient:
             raise SmgwParseError("Could not find profile dropdown in tariffform")
 
         dropdown_tid = None
+        profile_name = self._taf7_profile_name.strip()
         for option in select.find_all("option"):
             option_text = option.get_text(strip=True)
-            if self._taf7_profile_name in option_text:
+            if option_text == profile_name or option_text.startswith(
+                profile_name + " "
+            ):
                 dropdown_tid = option.get("value")
                 break
 
@@ -483,7 +486,7 @@ class SmgwClient:
             for r in meter_readings:
                 delta = abs(r.timestamp - target_dt)
                 if (
-                    delta < timedelta(minutes=tolerance_minutes)
+                    delta <= timedelta(minutes=tolerance_minutes)
                     and delta < best_delta
                 ):
                     best = r
