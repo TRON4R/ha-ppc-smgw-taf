@@ -1,0 +1,81 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Smart Meter Gateway",
+        "description": "Enter your SMGW HAN interface credentials. The integration will fetch certified daily meter readings once per day.",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password",
+          "taf7_profile_name": "TAF7 profile name",
+          "update_hour": "Fetch hour (0-23)",
+          "update_minute": "Fetch minute (0-59)"
+        },
+        "data_description": {
+          "url": "URL of the SMGW HAN interface (default: https://192.168.100.100/cgi-bin/hanservice.cgi)",
+          "taf7_profile_name": "Name of the TAF7 evaluation profile as configured in the SMGW",
+          "update_hour": "Hour of day to fetch yesterday's data",
+          "update_minute": "Minute of hour to fetch yesterday's data"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
+      "invalid_auth": "Invalid username or password.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This SMGW is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SMGW Settings",
+        "description": "Update credentials and fetch time.",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password",
+          "taf7_profile_name": "TAF7 profile name",
+          "update_hour": "Fetch hour (0-23)",
+          "update_minute": "Fetch minute (0-59)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
+      "invalid_auth": "Invalid username or password.",
+      "unknown": "An unexpected error occurred."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "daily_import_total": {
+        "name": "Daily import total"
+      },
+      "daily_import_go": {
+        "name": "Daily import Go tariff"
+      },
+      "daily_import_standard": {
+        "name": "Daily import Standard tariff"
+      },
+      "daily_export_total": {
+        "name": "Daily export total"
+      },
+      "meter_import_midnight": {
+        "name": "Meter import (midnight)"
+      },
+      "meter_import_0500": {
+        "name": "Meter import (05:00)"
+      },
+      "meter_export_midnight": {
+        "name": "Meter export (midnight)"
+      },
+      "date": {
+        "name": "Fetch date"
+      }
+    }
+  }
+}

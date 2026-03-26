@@ -1,0 +1,81 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Smart Meter Gateway verbinden",
+        "description": "Gib die Zugangsdaten für die HAN-Schnittstelle deines SMGW ein. Die Integration ruft einmal täglich die geeichten Tagesendwerte ab.",
+        "data": {
+          "url": "URL",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "taf7_profile_name": "TAF7-Profilname",
+          "update_hour": "Abruf-Stunde (0-23)",
+          "update_minute": "Abruf-Minute (0-59)"
+        },
+        "data_description": {
+          "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
+          "taf7_profile_name": "Name des TAF7-Auswertungsprofils wie im SMGW konfiguriert",
+          "update_hour": "Stunde des Tagesabrufs",
+          "update_minute": "Minute des Tagesabrufs"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
+      "invalid_auth": "Ungültiger Benutzername oder Passwort.",
+      "unknown": "Ein unerwarteter Fehler ist aufgetreten."
+    },
+    "abort": {
+      "already_configured": "Dieses SMGW ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SMGW-Einstellungen ändern",
+        "description": "Zugangsdaten und Abrufzeit anpassen.",
+        "data": {
+          "url": "URL",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "taf7_profile_name": "TAF7-Profilname",
+          "update_hour": "Abruf-Stunde (0-23)",
+          "update_minute": "Abruf-Minute (0-59)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
+      "invalid_auth": "Ungültiger Benutzername oder Passwort.",
+      "unknown": "Ein unerwarteter Fehler ist aufgetreten."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "daily_import_total": {
+        "name": "Tagesverbrauch gesamt"
+      },
+      "daily_import_go": {
+        "name": "Tagesverbrauch Go-Tarif"
+      },
+      "daily_import_standard": {
+        "name": "Tagesverbrauch Standard-Tarif"
+      },
+      "daily_export_total": {
+        "name": "Tageseinspeisung gesamt"
+      },
+      "meter_import_midnight": {
+        "name": "Zählerstand Verbrauch (Mitternacht)"
+      },
+      "meter_import_0500": {
+        "name": "Zählerstand Verbrauch (05:00)"
+      },
+      "meter_export_midnight": {
+        "name": "Zählerstand Einspeisung (Mitternacht)"
+      },
+      "date": {
+        "name": "Abrufdatum"
+      }
+    }
+  }
+}

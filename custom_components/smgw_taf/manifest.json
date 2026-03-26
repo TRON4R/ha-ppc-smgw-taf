@@ -1,0 +1,12 @@
+{
+  "domain": "smgw_taf",
+  "name": "PPC SMGW TAF Daily Import",
+  "codeowners": ["@TRON4R"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/TRON4R/ha-ppc-smgw-taf",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/TRON4R/ha-ppc-smgw-taf/issues",
+  "requirements": ["httpx>=0.27.0", "beautifulsoup4>=4.12.0"],
+  "version": "0.2.0"
+}
