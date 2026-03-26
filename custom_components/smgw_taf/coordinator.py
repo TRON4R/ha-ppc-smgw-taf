@@ -212,7 +212,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             SENSOR_DAILY_IMPORT_STANDARD: daily_data.daily_import_standard,
             SENSOR_DAILY_EXPORT_TOTAL: daily_data.daily_export_total,
             SENSOR_METER_IMPORT_PREV_DAY_CLOSE: daily_data.import_midnight,
-            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_0500,
+            SENSOR_METER_IMPORT_TARIFF_1: daily_data.import_tariff_switch,
             SENSOR_METER_EXPORT_PREV_DAY_CLOSE: daily_data.export_midnight,
         }
 
