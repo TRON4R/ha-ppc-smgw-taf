@@ -21,7 +21,7 @@ All sensors are compatible with the Home Assistant **Energy Dashboard**.
 
 ## How does this differ from ha-ppc-smgw?
 
-The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at regular intervals. Some users have reported being locked out of their SMGW due to the frequency of requests. This integration takes a different approach:
+The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fix 10 minute intervals (ignoring the respective setting). Some users have reported being locked out of their SMGW due to the high frequency of requests. This integration takes a different approach:
 
 - **One fetch per day** (5 HTTP requests total, at a configurable time)
 - **Certified values** from TAF7 interval readings (not live meter snapshots)
@@ -76,7 +76,7 @@ The meter reading sensors are disabled by default and can be enabled in the enti
 
 ## Intended use case
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59** (Go tariff) and a standard rate from **05:00 to 23:59**. The tariff split at 05:00 is hardcoded in the current version. If you are using a different tariff structure or a different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) to discuss how to make this configurable.
+This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split at 05:00 is hardcoded in the current version. If you are using a different tariff structure or a different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) to discuss how to make this configurable.
 
 ## License
 
