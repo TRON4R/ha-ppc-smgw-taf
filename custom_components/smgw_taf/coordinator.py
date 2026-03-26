@@ -161,14 +161,29 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         try:
-            # Parse tariff switch hour from config
+            # Parse tariff switch time from config
             tariff_time_str = self.config_entry.data.get(
                 CONF_TARIFF_SWITCH_TIME, DEFAULT_TARIFF_SWITCH_TIME
             )
             try:
-                tariff_hour = time.fromisoformat(tariff_time_str).hour
+                tariff_time = time.fromisoformat(tariff_time_str)
             except ValueError:
-                tariff_hour = 5
+                _LOGGER.warning(
+                    "Invalid tariff switch time '%s', falling back to "
+                    "default '%s'",
+                    tariff_time_str,
+                    DEFAULT_TARIFF_SWITCH_TIME,
+                )
+                tariff_time = time.fromisoformat(DEFAULT_TARIFF_SWITCH_TIME)
+
+            if tariff_time.minute != 0 or tariff_time.second != 0:
+                _LOGGER.warning(
+                    "Tariff switch time '%s' has non-zero minutes/seconds; "
+                    "only the hour (%02d:00) is supported and will be used",
+                    tariff_time_str,
+                    tariff_time.hour,
+                )
+            tariff_hour = tariff_time.hour
 
             daily_data = await self._client.async_fetch_daily_data(
                 yesterday, tariff_switch_hour=tariff_hour

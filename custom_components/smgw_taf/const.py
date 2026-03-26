@@ -22,7 +22,7 @@ OBIS_IMPORT = "1-0:1.8.0"  # Verbrauch / Grid import
 OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 
 # Store
-STORE_VERSION = 1
+STORE_VERSION = 2
 
 # Sensor keys (used in coordinator.data dict)
 SENSOR_DAILY_IMPORT_TOTAL = "daily_import_total"
