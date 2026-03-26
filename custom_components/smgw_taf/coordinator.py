@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -63,7 +62,7 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Store per entry to avoid collisions (Fix #1)
         store_key = f"{DOMAIN}_{config_entry.entry_id}"
         self._store = Store(hass, STORE_VERSION, store_key)
-        self._unsub_time_listener: Callable[[], None] | None = None
+        self._unsub_time_listener: callback | None = None
 
     async def async_setup(self) -> None:
         """Set up the coordinator: load stored data, schedule daily fetch."""

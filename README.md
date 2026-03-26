@@ -41,7 +41,7 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 1. Open HACS in Home Assistant
 2. Go to Integrations → three-dot menu → Custom repositories
 3. Add `https://github.com/TRON4R/ha-ppc-smgw-taf` as an Integration
-4. Install "SMGW Daily (TAF)"
+4. Install "PPC SMGW TAF Daily Import"
 5. Restart Home Assistant
 
 ### Manual
@@ -52,7 +52,7 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 ## Configuration
 
 1. Go to Settings → Devices & Services → Add Integration
-2. Search for "SMGW Daily"
+2. Search for "PPC SMGW"
 3. Enter:
    - **URL**: Your SMGW HAN interface URL (default: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
    - **Username** and **Password**: Your HAN credentials
@@ -61,16 +61,16 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 ## Sensors
 
-| Sensor | Description | State Class |
-|---|---|---|
-| Daily import total | Yesterday's total consumption | `total` |
-| Daily import Go tariff | Consumption 00:00–04:59 | `total` |
-| Daily import Standard tariff | Consumption 05:00–23:59 | `total` |
-| Daily export total | Yesterday's total feed-in | `total` |
-| Meter import (0:00) | Absolute reading at 00:00 | `total_increasing` |
-| Meter import (5:00) | Absolute reading at 05:00 | `total_increasing` |
-| Meter export (0:00) | Absolute reading at 00:00 | `total_increasing` |
-| Daily date | Date of the last fetched data | — |
+| Sensor | Description | Device Class | State Class |
+|---|---|---|---|
+| Daily import total | Yesterday's total consumption | `energy` | `total` |
+| Daily import Go tariff | Consumption 00:00–04:59 | `energy` | `total` |
+| Daily import Standard tariff | Consumption 05:00–23:59 | `energy` | `total` |
+| Daily export total | Yesterday's total feed-in | `energy` | `total` |
+| Meter import (0:00) | Absolute reading at 00:00 | `energy` | `total_increasing` |
+| Meter import (5:00) | Absolute reading at 05:00 | `energy` | `total_increasing` |
+| Meter export (0:00) | Absolute reading at 00:00 | `energy` | `total_increasing` |
+| Daily date | Date of the last fetched data | `date` | — |
 
 The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
 
