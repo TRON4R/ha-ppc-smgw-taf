@@ -21,7 +21,7 @@ All sensors are compatible with the Home Assistant **Energy Dashboard**.
 
 ## How does this differ from ha-ppc-smgw?
 
-The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fix 10 minute intervals (ignoring the respective setting). Some users have reported being locked out of their SMGW due to the high frequency of requests. This integration takes a different approach:
+The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fixed 10 minute intervals (ignoring the respective user setting during setup). Some users have reported being locked out of their SMGW, because the frequency of requests was deemed as too high by the SMGW. So this integration takes a different approach:
 
 - **One fetch per day** (5 HTTP requests total, at a configurable time)
 - **Certified values** from TAF7 interval readings (not live meter snapshots)
