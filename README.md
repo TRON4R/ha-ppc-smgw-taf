@@ -7,7 +7,7 @@
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TRON4R&repository=ha-ppc-smgw-taf)
 
-Home Assistant custom integration for reading **certified daily meter values** from PPC Smart Meter Gateways via the HAN interface.
+**Home Assistant custom integration for reading __certified daily meter values__ from PPC Smart Meter Gateways via the HAN interface.**
 
 <br clear="left">
 
