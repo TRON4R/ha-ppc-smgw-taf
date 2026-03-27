@@ -12,10 +12,10 @@ Home Assistant custom integration for reading **certified daily meter values** f
 
 This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the TAF7 evaluation profile. It calculates:
 
-- **Daily grid import (total)** — total electricity consumed
-- **Daily grid import (Go tariff)** — consumption during the reduced-rate period (default: 00:00–04:59)
-- **Daily grid import (Standard tariff)** — consumption during the standard-rate period (default: 05:00–23:59)
-- **Daily grid export (total)** — total electricity fed back to grid
+- **Daily consumption (total)** — total electricity consumed
+- **Daily consumption (slot 1)** — consumption during the first tariff period (default: 00:00–04:59)
+- **Daily consumption (slot 2)** — consumption during the second tariff period (default: 05:00–23:59)
+- **Daily feed-in (total)** — total electricity fed back to grid
 
 All sensors are compatible with the Home Assistant **Energy Dashboard**.
 
