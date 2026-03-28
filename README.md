@@ -13,7 +13,7 @@
 
 ## What it does
 
-This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the TAF7 evaluation profile. It calculates:
+This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the Zählerstand (meter readings) endpoint. It calculates:
 
 - **Daily consumption (total)** — total electricity consumed
 - **Daily consumption (slot 1)** — consumption during the first tariff period (default: 00:00–04:59)
@@ -27,7 +27,7 @@ All sensors are compatible with the Home Assistant **Energy Dashboard**.
 The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fixed 10 minute intervals (ignoring the respective user setting during setup). Some users have reported being locked out of their SMGW, because the frequency of requests was deemed as too high by the SMGW. So this integration takes a different approach:
 
 - **One fetch per day** (5 HTTP requests total, at a configurable time)
-- **Certified values** from TAF7 interval readings (not live meter snapshots)
+- **Certified values** from the SMGW's Zählerstand endpoint (not live meter snapshots)
 - **Accurate tariff split** using the exact meter reading at the configurable tariff switch time from the SMGW
 - **No timing issues** — values come from the SMGW's own daily boundaries, not HA's clock
 
@@ -35,7 +35,6 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 - PPC Smart Meter Gateway with HAN interface enabled
 - HAN credentials (username + password) from your electricity provider
-- A TAF7 evaluation profile configured in the SMGW (e.g., "TAF7_OCT_B+E")
 
 ## Installation
 
@@ -59,7 +58,6 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 3. Enter:
    - **URL**: Your SMGW HAN interface URL (default: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
    - **Username** and **Password**: Your HAN credentials
-   - **TAF7 profile name**: The name of your TAF7 evaluation profile (default: `TAF7_OCT_B+E`)
    - **Standard tariff start time**: When the standard tariff begins (default: 05:00, configurable)
    - **Fetch time**: Time of the daily data fetch (default: 00:15)
 
@@ -76,7 +74,6 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 | Meter feed-in previous day closing | Absolute export reading at start of day (00:00) | `energy` | `total_increasing` |
 | Daily date | Date of the last fetched data | `date` | — |
 
-The meter reading sensors are disabled by default and can be enabled in the entity settings if needed.
 
 ## Intended use case
 
