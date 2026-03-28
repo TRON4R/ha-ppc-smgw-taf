@@ -8,14 +8,12 @@
           "url": "URL",
           "username": "Username",
           "password": "Password",
-          "taf7_profile_name": "TAF7 profile name",
           "tariff_switch_hour": "Standard tariff start (hour)",
           "tariff_switch_minute": "Standard tariff start (minute)",
           "update_time": "Fetch time"
         },
         "data_description": {
           "url": "URL of the SMGW HAN interface (default: https://192.168.100.100/cgi-bin/hanservice.cgi)",
-          "taf7_profile_name": "Name of the TAF7 evaluation profile as configured in the SMGW",
           "tariff_switch_hour": "Hour when the standard tariff begins",
           "tariff_switch_minute": "Minute of the tariff switch (0, 15, 30 or 45)",
           "update_time": "Time of day for the automatic daily data fetch"
@@ -25,7 +23,6 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
-      "invalid_profile": "TAF7 profile not found or meter ID could not be read. Check the profile name.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
@@ -41,7 +38,6 @@
           "url": "URL",
           "username": "Username",
           "password": "Password",
-          "taf7_profile_name": "TAF7 profile name",
           "tariff_switch_hour": "Standard tariff start (hour)",
           "tariff_switch_minute": "Standard tariff start (minute)",
           "update_time": "Fetch time"
@@ -51,7 +47,6 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
-      "invalid_profile": "TAF7 profile not found or meter ID could not be read. Check the profile name.",
       "unknown": "An unexpected error occurred."
     }
   },

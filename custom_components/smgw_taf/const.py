@@ -9,7 +9,6 @@ CONF_PASSWORD = "password"
 CONF_UPDATE_TIME = "update_time"
 CONF_TARIFF_SWITCH_HOUR = "tariff_switch_hour"
 CONF_TARIFF_SWITCH_MINUTE = "tariff_switch_minute"
-CONF_TAF7_PROFILE_NAME = "taf7_profile_name"
 CONF_METER_ID = "meter_id"  # Parsed from SMGW during setup
 
 # Defaults
@@ -17,14 +16,13 @@ DEFAULT_URL = "https://192.168.100.100/cgi-bin/hanservice.cgi"
 DEFAULT_UPDATE_TIME = "00:15:00"
 DEFAULT_TARIFF_SWITCH_HOUR = 5
 DEFAULT_TARIFF_SWITCH_MINUTE = 0
-DEFAULT_TAF7_PROFILE_NAME = "TAF7_OCT_B+E"
 
 # OBIS codes
 OBIS_IMPORT = "1-0:1.8.0"  # Verbrauch / Grid import
 OBIS_EXPORT = "1-0:2.8.0"  # Einspeisung / Grid export
 
 # Store
-STORE_VERSION = 3
+STORE_VERSION = 4
 
 # Sensor keys (used in coordinator.data dict)
 SENSOR_DAILY_CONSUMPTION_TOTAL = "daily_consumption_total"

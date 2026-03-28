@@ -8,14 +8,12 @@
           "url": "URL",
           "username": "Benutzername",
           "password": "Passwort",
-          "taf7_profile_name": "TAF7-Profilname",
           "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
           "tariff_switch_minute": "Start Standard-Tarif (Minute)",
           "update_time": "Abrufzeit"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
-          "taf7_profile_name": "Name des TAF7-Auswertungsprofils wie im SMGW konfiguriert",
           "tariff_switch_hour": "Volle Stunde, ab der der Standard-Tarif gilt",
           "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
           "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
@@ -25,7 +23,6 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
-      "invalid_profile": "TAF7-Profil nicht gefunden oder Zähler-ID nicht lesbar. Profilname prüfen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
@@ -41,7 +38,6 @@
           "url": "URL",
           "username": "Benutzername",
           "password": "Passwort",
-          "taf7_profile_name": "TAF7-Profilname",
           "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
           "tariff_switch_minute": "Start Standard-Tarif (Minute)",
           "update_time": "Abrufzeit"
@@ -51,7 +47,6 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
-      "invalid_profile": "TAF7-Profil nicht gefunden oder Zähler-ID nicht lesbar. Profilname prüfen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     }
   },

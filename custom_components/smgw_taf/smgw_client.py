@@ -49,7 +49,6 @@ class SmgwDeviceInfo:
 
     meter_id: str  # e.g. "1lgz0072999211"
     firmware_version: str  # e.g. "00861-34788"
-    taf7_profile_validated: bool = False
 
 
 @dataclass
@@ -77,13 +76,11 @@ class SmgwClient:
         base_url: str,
         username: str,
         password: str,
-        taf7_profile_name: str,
     ) -> None:
         """Initialize the SMGW client."""
         self._base_url = base_url.rstrip("/")
         self._username = username
         self._password = password
-        self._taf7_profile_name = taf7_profile_name
         self._token: str | None = None
         self._client: httpx.AsyncClient | None = None
 
@@ -238,166 +235,143 @@ class SmgwClient:
         except Exception:
             return "unknown"
 
-    async def _navigate_to_taf7_profile(self) -> tuple[str, str]:
-        """Navigate to TAF7 profile and return (dropdown_tid, profile_html)."""
-        html = await self._post({"action": "tariffform"})
+    async def _navigate_to_meter(self) -> tuple[str, str]:
+        """Navigate to the meter page and return (mid, meter_id).
+
+        Fetches the meterform page and extracts the session mid and the
+        physical meter ID from the dropdown option text, e.g.:
+        "01005e318002.1lgz0072999211.sm" → meter_id "1lgz0072999211"
+        """
+        html = await self._post({"action": "meterform"})
         soup = BeautifulSoup(html, "html.parser")
 
-        select = soup.find("select", id="tarifform_select_profile")
+        select = soup.find("select", id="meterform_select_meter")
         if not select:
-            select = soup.find("select")
-
+            select = soup.find("select", {"name": "mid"})
         if not select:
-            raise SmgwParseError("Could not find profile dropdown in tariffform")
+            raise SmgwParseError("Could not find meter dropdown in meterform")
 
-        dropdown_tid = None
-        profile_name = self._taf7_profile_name.strip()
-        for option in select.find_all("option"):
-            option_text = option.get_text(strip=True)
-            if option_text == profile_name or option_text.startswith(
-                profile_name + " "
-            ):
-                dropdown_tid = option.get("value")
-                break
+        option = select.find("option")
+        if not option:
+            raise SmgwParseError("No meter found in meter dropdown")
 
-        if not dropdown_tid:
-            available = [
-                opt.get_text(strip=True) for opt in select.find_all("option")
-            ]
+        mid = option.get("value")
+        if not mid:
+            raise SmgwParseError("Could not extract mid from meter dropdown")
+
+        # Strip trailing ".sm", then take the last dot-separated segment
+        option_text = option.get_text(strip=True)
+        meter_id = option_text.removesuffix(".sm").rsplit(".", 1)[-1]
+        if not meter_id:
             raise SmgwParseError(
-                f"TAF7 profile '{self._taf7_profile_name}' not found. "
-                f"Available profiles: {available}"
+                f"Could not extract meter ID from dropdown text: {option_text}"
             )
 
-        _LOGGER.debug(
-            "Found TAF7 profile '%s' with dropdown tid=%s",
-            self._taf7_profile_name,
-            dropdown_tid,
-        )
+        _LOGGER.debug("Found meter mid=%s, meter_id=%s", mid, meter_id)
+        return mid, meter_id
 
-        profile_html = await self._post(
-            {"action": "showTariffProfile", "tid": dropdown_tid}
-        )
+    async def _get_meter_values_mid(self, mid: str) -> str:
+        """Get the session mid needed for showMeterValues requests.
 
-        return dropdown_tid, profile_html
-
-    @staticmethod
-    def _parse_meter_id(profile_html: str) -> str:
-        """Parse meter ID from the TAF7 profile detail page."""
-        soup = BeautifulSoup(profile_html, "html.parser")
-
-        domain_td = soup.find("td", id="table_tafvalues_col_domain")
-        if domain_td:
-            domain_text = domain_td.get_text(strip=True)
-            meter_id = domain_text.removesuffix(".sm")
-            if meter_id:
-                return meter_id
-
-        raise SmgwParseError(
-            "Could not find meter ID (Zähler-Domänenname) in TAF7 profile"
-        )
-
-    async def _get_taf7_tid(self, dropdown_tid: str) -> str:
-        """Get the tid needed for data (showTarification) requests."""
-        html = await self._post(
-            {"action": "showTarificationForm", "tid": dropdown_tid}
-        )
+        The mid from the meter dropdown is not directly usable for data
+        requests — a fresh mid is issued by the showMeterValuesForm page.
+        """
+        html = await self._post({"action": "showMeterValuesForm", "mid": mid})
         soup = BeautifulSoup(html, "html.parser")
 
-        tid_input = soup.find("input", {"name": "tid", "type": "hidden"})
-        if not tid_input:
-            tid_input = soup.find("input", {"name": "tid"})
+        # Prefer the mid inside the data form specifically
+        form = soup.find("form", {"name": "input_metervalues"})
+        if form:
+            mid_input = form.find("input", {"name": "mid", "type": "hidden"})
+        else:
+            mid_input = soup.find("input", {"name": "mid", "type": "hidden"})
 
-        if not tid_input or not tid_input.get("value"):
+        if not mid_input or not mid_input.get("value"):
             raise SmgwParseError(
-                "Could not find hidden tid field in showTarificationForm"
+                "Could not find hidden mid in showMeterValuesForm"
             )
 
-        actual_tid = tid_input["value"]
-        _LOGGER.debug("Got actual TAF7 tid=%s", actual_tid)
-        return actual_tid
+        values_mid = mid_input["value"]
+        _LOGGER.debug("Got meter values mid=%s", values_mid)
+        return values_mid
 
-    def _parse_tarification_table(self, html: str) -> list[MeterReading]:
-        """Parse the tarification HTML table into MeterReading objects."""
+    def _parse_meter_values_table(self, html: str) -> list[MeterReading]:
+        """Parse the Zählerstand HTML table into MeterReading objects.
+
+        Rows come in pairs: line1 (import, with timestamp) followed by
+        line2 (export, timestamp cell empty — inherits line1 timestamp).
+        Values are plain text in <td> cells, not in <input> buttons.
+        Data is in descending chronological order.
+        """
         soup = BeautifulSoup(html, "html.parser")
         readings: list[MeterReading] = []
 
-        rows = soup.find_all("tr", id="table_tafregister_line")
-        if not rows:
-            table = soup.find("table", id="tarification")
-            if table:
-                rows = table.find_all("tr")
-
-        if not rows:
-            _LOGGER.warning("No tarification data rows found in HTML response")
+        table = soup.find("table", id="metervalue")
+        if not table:
+            _LOGGER.warning("No meter values table found in HTML response")
             return readings
 
+        rows = table.find_all(
+            "tr", id=lambda x: x and x.startswith("table_metervalues_line")
+        )
+        if not rows:
+            _LOGGER.warning("No meter value rows found in table")
+            return readings
+
+        last_timestamp: datetime | None = None
+
         for row in rows:
-            try:
-                reading = self._parse_row(row)
-                if reading:
-                    readings.append(reading)
-            except (ValueError, TypeError, AttributeError) as err:
-                _LOGGER.debug("Skipping unparseable row: %s", err)
+            ts_td = row.find("td", id="table_metervalues_col_timestamp")
+            value_td = row.find("td", id="table_metervalues_col_wert")
+            unit_td = row.find("td", id="table_metervalues_col_einheit")
+            obis_td = row.find("td", id="table_metervalues_col_obis")
+
+            # Update running timestamp when a new one appears (line1 rows only)
+            if ts_td:
+                ts_str = ts_td.get_text(strip=True)
+                if ts_str:
+                    try:
+                        last_timestamp = datetime.strptime(
+                            ts_str, "%Y-%m-%d %H:%M:%S"
+                        )
+                    except ValueError:
+                        _LOGGER.debug("Cannot parse timestamp: %s", ts_str)
+
+            if not all([value_td, obis_td, last_timestamp]):
                 continue
 
-        _LOGGER.debug("Parsed %d meter readings from TAF7 data", len(readings))
+            obis_str = obis_td.get_text(strip=True)
+            if obis_str not in (OBIS_IMPORT, OBIS_EXPORT):
+                continue
+
+            value_str = value_td.get_text(strip=True)
+            unit_str = unit_td.get_text(strip=True) if unit_td else "kWh"
+
+            try:
+                readings.append(
+                    MeterReading(
+                        timestamp=last_timestamp,
+                        obis_code=obis_str,
+                        value=float(value_str),
+                        unit=unit_str,
+                        quality="valid",
+                    )
+                )
+            except (ValueError, TypeError) as err:
+                _LOGGER.debug("Skipping unparseable row: %s", err)
+
+        _LOGGER.debug(
+            "Parsed %d meter readings from Zählerstand data", len(readings)
+        )
         return readings
 
-    def _parse_row(self, row) -> MeterReading | None:
-        """Parse a single table row into a MeterReading."""
-
-        def cell_value(td) -> str | None:
-            if td is None:
-                return None
-            # Values are in input buttons (not text nodes)
-            inp = td.find("input", id="button_tarification_register")
-            if inp and inp.get("value"):
-                return inp["value"].strip()
-            inp = td.find("input")
-            if inp and inp.get("value"):
-                return inp["value"].strip()
-            text = td.get_text(strip=True)
-            return text if text else None
-
-        ts_td = row.find("td", id="table_tafregister_col_zeitstempel")
-        value_td = row.find("td", id="table_tafregister_col_wert")
-        unit_td = row.find("td", id="table_tafregister_col_einheit")
-        obis_td = row.find("td", id="table_tafregister_col_obis")
-        quality_td = row.find("td", id="table_tafregister_col_qualitaet")
-
-        ts_str = cell_value(ts_td)
-        value_str = cell_value(value_td)
-        obis_str = cell_value(obis_td)
-
-        if not all([ts_str, value_str, obis_str]):
-            return None
-
-        if obis_str not in (OBIS_IMPORT, OBIS_EXPORT):
-            return None
-
-        try:
-            timestamp = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            _LOGGER.debug("Cannot parse timestamp: %s", ts_str)
-            return None
-
-        return MeterReading(
-            timestamp=timestamp,
-            obis_code=obis_str,
-            value=float(value_str),
-            unit=cell_value(unit_td) or "kWh",
-            quality=cell_value(quality_td) or "",
-        )
-
     async def async_validate_and_get_device_info(self) -> SmgwDeviceInfo:
-        """Validate connection, TAF7 profile, and return device info."""
+        """Validate connection and return device info."""
         try:
             login_html = await self._login()
             firmware = self._parse_firmware(login_html)
 
-            _dropdown_tid, profile_html = await self._navigate_to_taf7_profile()
-            meter_id = self._parse_meter_id(profile_html)
+            _mid, meter_id = await self._navigate_to_meter()
 
             _LOGGER.info(
                 "SMGW validated: meter_id=%s, firmware=%s",
@@ -408,7 +382,6 @@ class SmgwClient:
             return SmgwDeviceInfo(
                 meter_id=meter_id,
                 firmware_version=firmware,
-                taf7_profile_validated=True,
             )
         finally:
             await self._logout()
@@ -423,27 +396,30 @@ class SmgwClient:
         try:
             await self._login()
 
-            dropdown_tid, _profile_html = await self._navigate_to_taf7_profile()
-            tid = await self._get_taf7_tid(dropdown_tid)
+            mid_dropdown, _meter_id = await self._navigate_to_meter()
+            mid = await self._get_meter_values_mid(mid_dropdown)
 
-            from_str = target_date.strftime("%Y-%m-%d")
             next_day = target_date + timedelta(days=1)
-            to_str = next_day.strftime("%Y-%m-%d")
+            # Use explicit datetime strings matching the SMGW form format.
+            # to includes 00:15:00 of next_day to safely capture the 00:00:01
+            # closing reading within the 7-minute tolerance window.
+            from_str = target_date.strftime("%Y-%m-%d") + " 00:00:00"
+            to_str = next_day.strftime("%Y-%m-%d") + " 00:15:00"
 
             _LOGGER.debug(
-                "Fetching TAF7 data from %s to %s", from_str, to_str
+                "Fetching Zählerstand data from %s to %s", from_str, to_str
             )
 
             html = await self._post(
                 {
-                    "action": "showTarification",
-                    "tid": tid,
+                    "action": "showMeterValues",
+                    "mid": mid,
                     "from": from_str,
                     "to": to_str,
                 }
             )
 
-            all_readings = self._parse_tarification_table(html)
+            all_readings = self._parse_meter_values_table(html)
 
             if not all_readings:
                 raise SmgwParseError(
@@ -452,7 +428,7 @@ class SmgwClient:
 
             return self._process_readings(
                 target_date, all_readings,
-                tariff_switch_hour, tariff_switch_minute
+                tariff_switch_hour, tariff_switch_minute,
             )
 
         finally:
@@ -468,7 +444,7 @@ class SmgwClient:
         """Process raw readings into DailyData with tariff calculations.
 
         Finds the reading closest to the target time (hour:minute) within
-        a tolerance window of +/- 7 minutes to match TAF7 15-minute grid.
+        a tolerance window of +/- 7 minutes to match the 15-minute grid.
         """
         next_day = target_date + timedelta(days=1)
 

@@ -28,13 +28,11 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_METER_ID,
     CONF_PASSWORD,
-    CONF_TAF7_PROFILE_NAME,
     CONF_TARIFF_SWITCH_HOUR,
     CONF_TARIFF_SWITCH_MINUTE,
     CONF_UPDATE_TIME,
     CONF_URL,
     CONF_USERNAME,
-    DEFAULT_TAF7_PROFILE_NAME,
     DEFAULT_TARIFF_SWITCH_HOUR,
     DEFAULT_TARIFF_SWITCH_MINUTE,
     DEFAULT_UPDATE_TIME,
@@ -55,7 +53,7 @@ HOUR_OPTIONS = [
     {"value": str(h), "label": f"{h:02d}"} for h in range(24)
 ]
 
-# Minute options: 0, 15, 30, 45 (matching TAF7 15-minute resolution)
+# Minute options: 0, 15, 30, 45 (matching 15-minute meter resolution)
 MINUTE_OPTIONS = [
     {"value": "0", "label": "00"},
     {"value": "15", "label": "15"},
@@ -87,10 +85,6 @@ def _build_schema(
                     autocomplete="current-password",
                 )
             ),
-            vol.Required(
-                CONF_TAF7_PROFILE_NAME,
-                default=d.get(CONF_TAF7_PROFILE_NAME, DEFAULT_TAF7_PROFILE_NAME),
-            ): str,
             vol.Optional(
                 CONF_TARIFF_SWITCH_HOUR,
                 default=str(d.get(CONF_TARIFF_SWITCH_HOUR, DEFAULT_TARIFF_SWITCH_HOUR)),
@@ -149,7 +143,6 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
                 base_url=user_input[CONF_URL],
                 username=user_input[CONF_USERNAME],
                 password=user_input[CONF_PASSWORD],
-                taf7_profile_name=user_input[CONF_TAF7_PROFILE_NAME],
             )
 
             try:
@@ -159,8 +152,8 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
             except SmgwConnectionError:
                 errors["base"] = "cannot_connect"
             except SmgwParseError as err:
-                _LOGGER.error("TAF7 profile validation failed: %s", err)
-                errors["base"] = "invalid_profile"
+                _LOGGER.error("SMGW validation failed: %s", err)
+                errors["base"] = "unknown"
             except Exception:
                 _LOGGER.exception("Unexpected error during connection test")
                 errors["base"] = "unknown"
@@ -210,7 +203,6 @@ class SmgwTafOptionsFlow(OptionsFlow):
                 base_url=new_data[CONF_URL],
                 username=new_data[CONF_USERNAME],
                 password=new_data[CONF_PASSWORD],
-                taf7_profile_name=new_data[CONF_TAF7_PROFILE_NAME],
             )
 
             try:
@@ -229,8 +221,8 @@ class SmgwTafOptionsFlow(OptionsFlow):
             except SmgwConnectionError:
                 errors["base"] = "cannot_connect"
             except SmgwParseError as err:
-                _LOGGER.error("TAF7 profile validation failed: %s", err)
-                errors["base"] = "invalid_profile"
+                _LOGGER.error("SMGW validation failed: %s", err)
+                errors["base"] = "unknown"
             except Exception:
                 _LOGGER.exception("Unexpected error during connection test")
                 errors["base"] = "unknown"
