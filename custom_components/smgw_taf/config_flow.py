@@ -209,9 +209,9 @@ class SmgwTafOptionsFlow(OptionsFlow):
                 device_info = await client.async_validate_and_get_device_info()
                 old_meter_id = self.config_entry.data.get(CONF_METER_ID)
                 if old_meter_id and device_info.meter_id != old_meter_id:
-                    _LOGGER.warning(
-                        "Meter ID changed from %s to %s - this may indicate "
-                        "a different physical meter. Updating entry.",
+                    _LOGGER.info(
+                        "Meter ID changed from %s to %s - hardware replacement "
+                        "detected. Updating stored meter ID, entities unchanged.",
                         old_meter_id,
                         device_info.meter_id,
                     )
