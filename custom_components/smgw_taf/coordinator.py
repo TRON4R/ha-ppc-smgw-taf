@@ -39,19 +39,6 @@ from .smgw_client import DailyData, SmgwClient, SmgwClientError
 _LOGGER = logging.getLogger(__name__)
 
 
-def _migrate_store(
-    old_major_version: int,
-    old_minor_version: int,
-    old_data: dict[str, Any],
-) -> dict[str, Any] | None:
-    """Discard incompatible stored data on version bump."""
-    _LOGGER.info(
-        "Discarding stored data from version %d (current: %d) - will refetch",
-        old_major_version,
-        STORE_VERSION,
-    )
-    return None
-
 
 class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for daily SMGW TAF data fetching.
@@ -79,18 +66,22 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._client = client
         # Store per entry to avoid collisions
         store_key = f"{DOMAIN}_{config_entry.entry_id}"
-        self._store = Store(
-            hass,
-            STORE_VERSION,
-            store_key,
-            migration_func=_migrate_store,
-        )
+        self._store = Store(hass, STORE_VERSION, store_key)
         self._unsub_time_listener: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Set up the coordinator: load stored data, schedule daily fetch."""
-        # Load persisted data
-        stored = await self._store.async_load()
+        # Load persisted data (NotImplementedError = version mismatch, discard)
+        try:
+            stored = await self._store.async_load()
+        except NotImplementedError:
+            _LOGGER.info(
+                "Stored data version incompatible with current version %d"
+                " - discarding and refetching",
+                STORE_VERSION,
+            )
+            await self._store.async_remove()
+            stored = None
         if stored and isinstance(stored, dict):
             self.async_set_updated_data(stored)
             _LOGGER.debug(
