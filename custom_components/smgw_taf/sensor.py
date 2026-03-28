@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfEnergy
+from homeassistant.const import EntityCategory, UnitOfEnergy
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -33,6 +33,11 @@ from .const import (
     SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
 )
 from .coordinator import SmgwTafCoordinator
+
+# Stable installation ID — independent of physical meter hardware.
+# Multi-meter support is deliberately out of scope; this integration
+# always represents a single metering point per config entry.
+STABLE_DEVICE_ID = "smgw_meter1"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -89,7 +94,7 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         is_daily_value=True,
         icon="mdi:solar-power",
     ),
-    # --- Absolute meter readings (informational) ---
+    # --- Absolute meter readings (primary technical sensors) ---
     SmgwTafSensorEntityDescription(
         key="meter_consumption_prev_day_close",
         translation_key="meter_consumption_prev_day_close",
@@ -98,7 +103,6 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
-        entity_registry_enabled_default=False,
         icon="mdi:meter-electric",
     ),
     SmgwTafSensorEntityDescription(
@@ -109,7 +113,6 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
-        entity_registry_enabled_default=False,
         icon="mdi:meter-electric",
     ),
     SmgwTafSensorEntityDescription(
@@ -120,15 +123,15 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=4,
-        entity_registry_enabled_default=False,
         icon="mdi:meter-electric-outline",
     ),
-    # --- Date sensor (informational) ---
+    # --- Date sensor (diagnostic, enabled by default) ---
     SmgwTafSensorEntityDescription(
         key="date",
         translation_key="date",
         data_key=SENSOR_DATE,
         device_class=SensorDeviceClass.DATE,
+        entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:calendar",
     ),
 )
@@ -165,11 +168,13 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        meter_id = config_entry.data.get(CONF_METER_ID, config_entry.entry_id)
-        self._attr_unique_id = f"{meter_id}_{description.key}"
+        # Identity is stable and independent of physical meter hardware.
+        # If the meter is replaced (new meter_id), entities remain unchanged.
+        self._attr_unique_id = f"{STABLE_DEVICE_ID}_{description.key}"
+        meter_id = config_entry.data.get(CONF_METER_ID)
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, meter_id)},
-            name=f"Smart Meter {meter_id}",
+            identifiers={(DOMAIN, STABLE_DEVICE_ID)},
+            name="PPC SMGW",
             manufacturer="PPC",
             model="Smart Meter Gateway",
             serial_number=meter_id,
