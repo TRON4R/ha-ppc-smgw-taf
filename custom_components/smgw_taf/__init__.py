@@ -10,10 +10,8 @@ from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_PASSWORD,
-    CONF_TAF7_PROFILE_NAME,
     CONF_URL,
     CONF_USERNAME,
-    DEFAULT_TAF7_PROFILE_NAME,
 )
 from .coordinator import SmgwTafCoordinator
 from .smgw_client import SmgwClient
@@ -33,9 +31,6 @@ async def async_setup_entry(
         base_url=entry.data[CONF_URL],
         username=entry.data[CONF_USERNAME],
         password=entry.data[CONF_PASSWORD],
-        taf7_profile_name=entry.data.get(
-            CONF_TAF7_PROFILE_NAME, DEFAULT_TAF7_PROFILE_NAME
-        ),
     )
 
     coordinator = SmgwTafCoordinator(hass, entry, client)
