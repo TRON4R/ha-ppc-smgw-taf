@@ -25,3 +25,7 @@ build/
 
 # Environment
 .env
+
+# Claude Code (local only, not for GitHub)
+CLAUDE.md
+.claude/
