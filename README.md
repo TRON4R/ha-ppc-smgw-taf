@@ -7,78 +7,79 @@
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TRON4R&repository=ha-ppc-smgw-han)
 
-**Home Assistant custom integration for reading __certified daily meter values__ from PPC Smart Meter Gateways via the HAN interface.**
+**Home Assistant Custom Integration zum Abruf __geeichter Tagesendwerte__ von PPC Smart Meter Gateways über die HAN-Schnittstelle.**
+
+EN: Home Assistant custom integration for reading certified daily meter values from PPC Smart Meter Gateways via the HAN interface.
 
 <br clear="left">
 
-## What it does
+## Was macht diese Integration?
 
-This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the Zählerstand (meter readings) endpoint. It calculates:
+Die Integration verbindet sich einmal täglich mit dem PPC SMGW und ruft die offiziellen, eichrechtskonformen Tagesendwerte vom Zählerstand-Endpunkt ab. Sie berechnet:
 
-- **Daily consumption (total)** — total electricity consumed
-- **Daily consumption (slot 1)** — consumption during the first tariff period (default: 00:00–04:59)
-- **Daily consumption (slot 2)** — consumption during the second tariff period (default: 05:00–23:59)
-- **Daily feed-in (total)** — total electricity fed back to grid
+- **Tagesverbrauch (gesamt)** — gesamter Stromverbrauch des Vortags
+- **Tagesverbrauch (Zeitfenster 1)** — Verbrauch im ersten Tarifzeitraum (Standard: 00:00–04:59)
+- **Tagesverbrauch (Zeitfenster 2)** — Verbrauch im zweiten Tarifzeitraum (Standard: 05:00–23:59)
+- **Tageseinspeisung (gesamt)** — gesamte Netzeinspeisung des Vortags
 
-All sensors are compatible with the Home Assistant **Energy Dashboard**.
+Alle Sensoren sind kompatibel mit dem Home Assistant **Energie-Dashboard**.
 
-## How does this differ from ha-ppc-smgw?
+## Unterschied zu ha-ppc-smgw
 
-The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fixed 10 minute intervals (ignoring the respective user setting during setup). Some users have reported being locked out of their SMGW, because the frequency of requests was deemed as too high by the SMGW. So this integration takes a different approach:
+Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-Integration fragt aktuelle Zählerstände in festen 10-Minuten-Intervallen ab (unabhängig von der Nutzereinstellung beim Setup). Einige Nutzer berichten, dass sie vom SMGW gesperrt wurden, weil die Abfragehäufigkeit als zu hoch eingestuft wurde. Diese Integration verfolgt einen anderen Ansatz:
 
-- **One fetch per day** (5 HTTP requests total, at a configurable time)
-- **Certified values** from the SMGW's Zählerstand endpoint (not live meter snapshots)
-- **Accurate tariff split** using the exact meter reading at the configurable tariff switch time from the SMGW
-- **No timing issues** — values come from the SMGW's own daily boundaries, not HA's clock
+- **Ein Abruf pro Tag** (5 HTTP-Requests insgesamt, zu einer konfigurierbaren Uhrzeit)
+- **Geeichte Werte** vom Zählerstand-Endpunkt des SMGW (keine Live-Momentaufnahmen)
+- **Exakte Tarifaufteilung** anhand des genauen Zählerstands zum konfigurierbaren Tarifwechselzeitpunkt
+- **Keine Timing-Probleme** — die Werte stammen aus den Tagesgrenzen des SMGW, nicht aus der HA-Uhr
 
-## Requirements
+## Voraussetzungen
 
-- PPC Smart Meter Gateway with HAN interface enabled
-- HAN credentials (username + password) from your electricity provider
+- PPC Smart Meter Gateway mit aktivierter HAN-Schnittstelle
+- HAN-Zugangsdaten (Benutzername + Passwort) vom Messstellenbetreiber
 
 ## Installation
 
-### HACS (recommended)
+### HACS (empfohlen)
 
-1. Open HACS in Home Assistant
-2. Go to Integrations → three-dot menu → Custom repositories
-3. Add `https://github.com/TRON4R/ha-ppc-smgw-han` as an Integration
-4. Install "PPC SMGW HAN Daily Import"
-5. Restart Home Assistant
+1. HACS in Home Assistant öffnen
+2. Integrationen → Drei-Punkte-Menü → Benutzerdefinierte Repositories
+3. `https://github.com/TRON4R/ha-ppc-smgw-han` als Integration hinzufügen
+4. „PPC SMGW HAN Daily Import" installieren
+5. Home Assistant neu starten
 
-### Manual
+### Manuell
 
-1. Copy `custom_components/smgw_han/` to your Home Assistant `custom_components/` directory
-2. Restart Home Assistant
+1. `custom_components/smgw_han/` in das `custom_components/`-Verzeichnis von Home Assistant kopieren
+2. Home Assistant neu starten
 
-## Configuration
+## Konfiguration
 
-1. Go to Settings → Devices & Services → Add Integration
-2. Search for "PPC SMGW"
-3. Enter:
-   - **URL**: Your SMGW HAN interface URL (default: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
-   - **Username** and **Password**: Your HAN credentials
-   - **Standard tariff start time**: When the standard tariff begins (default: 05:00, configurable)
-   - **Fetch time**: Time of the daily data fetch (default: 00:15)
+1. Einstellungen → Geräte & Dienste → Integration hinzufügen
+2. Nach „PPC SMGW" suchen
+3. Eingeben:
+   - **URL**: URL der SMGW HAN-Schnittstelle (Standard: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
+   - **Benutzername** und **Passwort**: HAN-Zugangsdaten
+   - **Start Standard-Tarif**: Uhrzeit des Tarifwechsels (Standard: 05:00, konfigurierbar)
+   - **Abrufzeit**: Uhrzeit des täglichen Datenabrufs (Standard: 00:15)
 
-## Sensors
+## Sensoren
 
-| Sensor | Description | Device Class | State Class |
+| Sensor | Beschreibung | Device Class | State Class |
 |---|---|---|---|
-| Daily consumption total | Yesterday's total consumption | `energy` | `total` |
-| Daily consumption slot 1 | Consumption during slot 1 (midnight → tariff switch) | `energy` | `total` |
-| Daily consumption slot 2 | Consumption during slot 2 (tariff switch → midnight) | `energy` | `total` |
-| Daily feed-in total | Yesterday's total feed-in | `energy` | `total` |
-| Meter consumption previous day closing | Absolute reading at start of day (00:00) | `energy` | `total_increasing` |
-| Meter consumption tariff switch 1 | Absolute reading at tariff switch time | `energy` | `total_increasing` |
-| Meter feed-in previous day closing | Absolute export reading at start of day (00:00) | `energy` | `total_increasing` |
-| Daily date | Date of the last fetched data | `date` | — |
+| Tagesverbrauch gesamt | Gesamtverbrauch des Vortags | `energy` | `total` |
+| Tagesverbrauch Zeitfenster 1 | Verbrauch Zeitfenster 1 (Mitternacht → Tarifwechsel) | `energy` | `total` |
+| Tagesverbrauch Zeitfenster 2 | Verbrauch Zeitfenster 2 (Tarifwechsel → Mitternacht) | `energy` | `total` |
+| Tageseinspeisung gesamt | Gesamteinspeisung des Vortags | `energy` | `total` |
+| Zählerstand Verbrauch Endstand Vortag | Absoluter Zählerstand zu Tagesbeginn (00:00) | `energy` | `total_increasing` |
+| Zählerstand Verbrauch Tarifwechsel 1 | Absoluter Zählerstand zum Tarifwechselzeitpunkt | `energy` | `total_increasing` |
+| Zählerstand Einspeisung Endstand Vortag | Absoluter Einspeise-Zählerstand zu Tagesbeginn (00:00) | `energy` | `total_increasing` |
+| Tagesdatum | Datum der zuletzt abgerufenen Daten | `date` | — |
 
+## Anwendungsfall
 
-## Intended use case
+Diese Integration wurde für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist konfigurierbar. Falls du eine völlig andere Tarifstruktur oder einen anderen Wechselzeitpunkt nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder besser einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam eine Lösung finden.
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
+## Lizenz
 
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
+MIT-Lizenz — siehe [LICENSE](LICENSE) für Details.
