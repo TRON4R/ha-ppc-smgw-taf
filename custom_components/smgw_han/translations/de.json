@@ -18,6 +18,14 @@
           "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
           "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
         }
+      },
+      "reauth_confirm": {
+        "title": "SMGW erneut authentifizieren",
+        "description": "Die SMGW-Zugangsdaten sind nicht mehr gültig. Bitte aktualisierte Zugangsdaten eingeben.",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
       }
     },
     "error": {
@@ -26,7 +34,8 @@
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
-      "already_configured": "Dieser Zähler ist bereits konfiguriert."
+      "already_configured": "Dieser Zähler ist bereits konfiguriert.",
+      "reauth_successful": "Erneute Authentifizierung erfolgreich."
     }
   },
   "options": {
@@ -41,6 +50,12 @@
           "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
           "tariff_switch_minute": "Start Standard-Tarif (Minute)",
           "update_time": "Abrufzeit"
+        },
+        "data_description": {
+          "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
+          "tariff_switch_hour": "Volle Stunde, ab der der Standard-Tarif gilt",
+          "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
+          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
         }
       }
     },

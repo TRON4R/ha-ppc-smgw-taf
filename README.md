@@ -1,11 +1,11 @@
 
-# ha-ppc-smgw-taf
+# ha-ppc-smgw-han
 
-<img src="custom_components/smgw_taf/brand/icon.png" alt="SMGW Icon" width="128" align="left" style="margin-right: 16px;">
+<img src="custom_components/smgw_han/brand/icon.png" alt="SMGW Icon" width="128" align="left" style="margin-right: 16px;">
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TRON4R&repository=ha-ppc-smgw-taf)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TRON4R&repository=ha-ppc-smgw-han)
 
 **Home Assistant custom integration for reading __certified daily meter values__ from PPC Smart Meter Gateways via the HAN interface.**
 
@@ -42,13 +42,13 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 1. Open HACS in Home Assistant
 2. Go to Integrations → three-dot menu → Custom repositories
-3. Add `https://github.com/TRON4R/ha-ppc-smgw-taf` as an Integration
-4. Install "PPC SMGW TAF Daily Import"
+3. Add `https://github.com/TRON4R/ha-ppc-smgw-han` as an Integration
+4. Install "PPC SMGW HAN Daily Import"
 5. Restart Home Assistant
 
 ### Manual
 
-1. Copy `custom_components/smgw_taf/` to your Home Assistant `custom_components/` directory
+1. Copy `custom_components/smgw_han/` to your Home Assistant `custom_components/` directory
 2. Restart Home Assistant
 
 ## Configuration
@@ -77,7 +77,7 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 
 ## Intended use case
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-taf/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-taf/pulls) to discuss how to make this work for your setup.
+This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
 
 ## License
 

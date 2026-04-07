@@ -1,4 +1,4 @@
-"""Data coordinator for SMGW TAF integration."""
+"""Data coordinator for SMGW HAN integration."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.storage import Store
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
@@ -34,14 +35,14 @@ from .const import (
     SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
     STORE_VERSION,
 )
-from .smgw_client import DailyData, SmgwClient, SmgwClientError
+from .smgw_client import DailyData, SmgwAuthError, SmgwClient, SmgwClientError
 
 _LOGGER = logging.getLogger(__name__)
 
 
 
 class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Coordinator for daily SMGW TAF data fetching.
+    """Coordinator for daily SMGW HAN data fetching.
 
     Uses async_track_time_change to trigger exactly at the configured
     time (default 00:15) instead of polling with update_interval.
@@ -208,6 +209,10 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 tariff_switch_hour=tariff_hour,
                 tariff_switch_minute=tariff_minute,
             )
+        except SmgwAuthError as err:
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except SmgwClientError as err:
             raise UpdateFailed(
                 f"Failed to fetch SMGW data for {yesterday}: {err}"

@@ -18,6 +18,14 @@
           "tariff_switch_minute": "Minute of the tariff switch (0, 15, 30 or 45)",
           "update_time": "Time of day for the automatic daily data fetch"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate SMGW",
+        "description": "The SMGW credentials are no longer valid. Please enter updated credentials.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -26,7 +34,8 @@
       "unknown": "An unexpected error occurred."
     },
     "abort": {
-      "already_configured": "This meter is already configured."
+      "already_configured": "This meter is already configured.",
+      "reauth_successful": "Re-authentication successful."
     }
   },
   "options": {
@@ -41,6 +50,12 @@
           "tariff_switch_hour": "Standard tariff start (hour)",
           "tariff_switch_minute": "Standard tariff start (minute)",
           "update_time": "Fetch time"
+        },
+        "data_description": {
+          "url": "URL of the SMGW HAN interface (default: https://192.168.100.100/cgi-bin/hanservice.cgi)",
+          "tariff_switch_hour": "Hour when the standard tariff begins",
+          "tariff_switch_minute": "Minute of the tariff switch (0, 15, 30 or 45)",
+          "update_time": "Time of day for the automatic daily data fetch"
         }
       }
     },

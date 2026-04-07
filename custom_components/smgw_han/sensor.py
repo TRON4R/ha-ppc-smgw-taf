@@ -1,4 +1,4 @@
-"""Sensor platform for SMGW TAF integration."""
+"""Sensor platform for SMGW HAN integration."""
 
 from __future__ import annotations
 
@@ -12,11 +12,10 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfEnergy
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
@@ -32,6 +31,7 @@ from .const import (
     SENSOR_METER_CONSUMPTION_SWITCH_1,
     SENSOR_METER_FEEDIN_PREV_DAY_CLOSE,
 )
+from . import SmgwTafConfigEntry
 from .coordinator import SmgwTafCoordinator
 
 # Stable installation ID — independent of physical meter hardware.
@@ -42,7 +42,7 @@ STABLE_DEVICE_ID = "smgw_meter1"
 
 @dataclass(frozen=True, kw_only=True)
 class SmgwTafSensorEntityDescription(SensorEntityDescription):
-    """Describe a SMGW TAF sensor."""
+    """Describe a SMGW HAN sensor."""
 
     data_key: str
     is_daily_value: bool = False
@@ -139,10 +139,10 @@ SENSOR_DESCRIPTIONS: tuple[SmgwTafSensorEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    config_entry: SmgwTafConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up SMGW TAF sensors from a config entry."""
+    """Set up SMGW HAN sensors from a config entry."""
     coordinator: SmgwTafCoordinator = config_entry.runtime_data
 
     entities = [
@@ -154,7 +154,7 @@ async def async_setup_entry(
 
 
 class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
-    """Sensor for SMGW TAF daily meter values."""
+    """Sensor for SMGW HAN daily meter values."""
 
     entity_description: SmgwTafSensorEntityDescription
     _attr_has_entity_name = True
@@ -163,7 +163,7 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         self,
         coordinator: SmgwTafCoordinator,
         description: SmgwTafSensorEntityDescription,
-        config_entry: ConfigEntry,
+        config_entry: SmgwTafConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)

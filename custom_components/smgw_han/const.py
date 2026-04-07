@@ -1,6 +1,6 @@
-"""Constants for the SMGW TAF integration."""
+"""Constants for the SMGW HAN integration."""
 
-DOMAIN = "smgw_taf"
+DOMAIN = "smgw_han"
 
 # Config flow keys
 CONF_URL = "url"

@@ -1,4 +1,4 @@
-"""The SMGW TAF integration."""
+"""The SMGW HAN integration."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ type SmgwTafConfigEntry = ConfigEntry[SmgwTafCoordinator]
 async def async_setup_entry(
     hass: HomeAssistant, entry: SmgwTafConfigEntry
 ) -> bool:
-    """Set up SMGW TAF from a config entry."""
+    """Set up SMGW HAN from a config entry."""
     client = SmgwClient(
         base_url=entry.data[CONF_URL],
         username=entry.data[CONF_USERNAME],

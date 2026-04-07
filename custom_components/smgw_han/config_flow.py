@@ -1,4 +1,4 @@
-"""Config flow for SMGW TAF integration."""
+"""Config flow for SMGW HAN integration."""
 
 from __future__ import annotations
 
@@ -112,7 +112,7 @@ def _build_schema(
 
 
 class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for SMGW TAF."""
+    """Handle a config flow for SMGW HAN."""
 
     VERSION = 1
 
@@ -178,9 +178,75 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle reauth trigger."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle reauth credential input."""
+        errors: dict[str, str] = {}
+        reauth_entry = self._get_reauth_entry()
+
+        if user_input is not None:
+            new_data = {**reauth_entry.data, **user_input}
+
+            client = SmgwClient(
+                base_url=new_data[CONF_URL],
+                username=new_data[CONF_USERNAME],
+                password=new_data[CONF_PASSWORD],
+            )
+
+            try:
+                await client.async_validate_and_get_device_info()
+            except SmgwAuthError:
+                errors["base"] = "invalid_auth"
+            except SmgwConnectionError:
+                errors["base"] = "cannot_connect"
+            except SmgwParseError as err:
+                _LOGGER.error("SMGW reauth validation failed: %s", err)
+                errors["base"] = "unknown"
+            except Exception:
+                _LOGGER.exception("Unexpected error during reauth")
+                errors["base"] = "unknown"
+            finally:
+                await client.close()
+
+            if not errors:
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data_updates=user_input,
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=reauth_entry.data.get(CONF_USERNAME, ""),
+                    ): TextSelector(
+                        TextSelectorConfig(autocomplete="username")
+                    ),
+                    vol.Required(
+                        CONF_PASSWORD,
+                    ): TextSelector(
+                        TextSelectorConfig(
+                            type=TextSelectorType.PASSWORD,
+                            autocomplete="current-password",
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
+        )
+
 
 class SmgwTafOptionsFlow(OptionsFlow):
-    """Handle options flow for SMGW TAF."""
+    """Handle options flow for SMGW HAN."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
