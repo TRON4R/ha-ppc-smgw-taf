@@ -9,7 +9,7 @@
 
 **Home Assistant Custom Integration zum Abruf __geeichter Tagesendwerte__ von PPC Smart Meter Gateways über die HAN-Schnittstelle.**
 
-EN: Home Assistant custom integration for reading certified daily meter values from PPC Smart Meter Gateways via the HAN interface.
+**EN: Home Assistant custom integration for reading certified daily meter values from PPC Smart Meter Gateways via the HAN interface.**
 
 <br clear="left">
 
