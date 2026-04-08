@@ -9,6 +9,8 @@
 
 **Home Assistant custom integration for reading __certified daily meter values__ from PPC Smart Meter Gateways via the HAN interface.**
 
+<a href="README.md">Deutsche Version</a>
+
 <br clear="left">
 
 ## What it does
