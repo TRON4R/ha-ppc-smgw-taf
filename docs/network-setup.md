@@ -9,8 +9,8 @@ Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert un
 3. _Statisch_ selektieren (falls nicht sowieso schon aktiv. Das ist nötig, weil _Automatisch_ (d.h. DHCP) und zwei IP-Adressen sich in HA gegenseitig ausschließen)
 4. _+ Adresse hinzufügen_ anklicken
 5. Im neuen Feld mit 0.0.0.0 die neue _IP-Adresse_ eingeben, z.B. `192.168.100.12`
-   - Die letzte Zahl (hier `12`) ist frei wählbar, solange diese IP nicht bereits im Bereich `192.168.100.x` vergeben ist. Normalerweise sollte der aber außer der IP 192.168.100.100 vom SMGW leer sein.
-   - Achtung! Gut aufpassen, dass man nicht das falsche Feld ausfüllt und sich damit den eigenen Ast absägt, auf dem man sitzt.
+   - Die letzte Zahl (hier `12`) ist frei wählbar, solange diese IP nicht bereits im Bereich `192.168.100.x` vergeben ist. Normalerweise sollte der aber außer der IP `192.168.100.100` vom SMGW leer sein.
+   - Achtung! Gut aufpassen, dass man nicht das falsche _IP-Adresse_-Feld ausfüllt und sich damit den eigenen Ast absägt, auf dem man sitzt.
 6. _Netzmaske_ `255.255.255.0` prüfen (sollte automatisch korrekt sein)
 7. _**Speichern**_
 
