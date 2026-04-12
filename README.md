@@ -56,7 +56,7 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 ## Konfiguration
 
 1. Einstellungen → Geräte & Dienste → Integration hinzufügen
-2. Nach „PPC SMGW" suchen
+2. Nach „PPC SMGW HAN" suchen
 3. Eingeben:
    - **URL**: URL der SMGW HAN-Schnittstelle (Standard: `https://192.168.100.100/cgi-bin/hanservice.cgi`)
    - **Benutzername** und **Passwort**: HAN-Zugangsdaten
@@ -85,8 +85,8 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 Die Kachel zeigt die letzten 30 Tage als gestapeltes Balkendiagramm:
 - **Go** (blau): Verbrauch im vergünstigten Zeitfenster (Zeitfenster 1)
 - **Standard** (pink): Verbrauch im Normalpreis-Zeitfenster (Zeitfenster 2)
-- Tooltip (mouse-over): Einzelwerte je Tarifsegment pro Tag
-- Kopfzeile: kumulierter Gesamtverbrauch je Segment im angezeigten Zeitraum
+- **Tooltip** (mouse-over): Einzelwerte je Tarifsegment pro Tag
+- **Kopfzeile**: kumulierter Gesamtverbrauch je Segment im angezeigten Zeitraum
 
 ### Einbindung
 
@@ -100,7 +100,7 @@ Die Entity-IDs findest du unter **Einstellungen → Geräte & Dienste → Entit�
 
 ## Anwendungsfall
 
-Diese Integration wurde für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist konfigurierbar. Falls du eine völlig andere Tarifstruktur oder einen anderen Wechselzeitpunkt nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder besser einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam eine Lösung finden.
+Diese Integration wurde primär für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist aber über das GUI einstellbar. Falls du eine völlig andere Tarifstruktur nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder besser einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam die Integration entsprechend erweitern können.
 
 ## Lizenz
 
