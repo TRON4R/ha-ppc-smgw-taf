@@ -1,6 +1,7 @@
 # Netzwerk-Einrichtung: Home Assistant und SMGW verbinden
 
-Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert und lässt sich nicht ändern. Home Assistant läuft typischerweise im Router-Netzwerk auf einer lokalen IP-Adresse wie z.B. `192.168.2.12`. Da diese beiden Netzbereiche nicht direkt miteinander kommunizieren, muss dem "Home Assistant"-Server eine zweite IP-Adresse aus dem `192.168.100.x`-Bereich zugewiesen werden. Dies geht recht einfach wie folgt:
+Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert und lässt sich nicht ändern. Home Assistant läuft typischerweise im Router-Netzwerk auf einer lokalen IP-Adresse wie z.B. `192.168.2.12`. Da diese beiden Netzbereiche nicht direkt miteinander kommunizieren, ist die einfachste und schnellste Lösung, dem "Home Assistant"-Server eine zweite IP-Adresse aus dem `192.168.100.x`-Bereich zu geben.  
+Dies geht recht einfach wie folgt:
 
 ## Zweite IP-Adresse in Home Assistant einrichten
 
