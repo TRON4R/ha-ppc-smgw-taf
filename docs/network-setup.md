@@ -18,7 +18,7 @@ Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert un
 **Am Ende sollte alles so aussehen, wie in diesem Screenshot:**
 ![Netzwerkschnittstellen konfigurieren in Home Assistant](network-setup.png)
 
-Und das war es auch schon. Jetzt kann der "Home Assistant"-Server direkt mit dem SMGW reden. Ohne komplizierte Routen, vLANs oder die Umstellung des gesamten privaten Netzwerks. 
+**Und das war es auch schon.** Jetzt kann der "Home Assistant"-Server direkt mit dem SMGW reden. Ohne komplizierte Routen, vLANs oder die Umstellung des gesamten privaten Netzwerks. 
 Als nächstes muss nur noch die SMGW-Integration gestartet werden und diese sollte sich dann erfolgreich mit dem SGMW verbinden können. 
 
 ## Hinweise
