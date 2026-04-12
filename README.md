@@ -40,8 +40,8 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 - Der "Home Assistant"-Server und das SMGW müssen sich IP-technisch gegenseitig "sehen" können.
 
 > [!TIP]
-> **EINFACHE LÖSUNG FÜR DAS IP-ROUTING-PROBLEM:**
-> _Home Assistant und SMGW im selben IP-Bereich erreichbar machen_
+> **EINFACHE LÖSUNG FÜR DAS IP-ROUTING-PROBLEM:**  
+> _Home Assistant und SMGW im selben IP-Bereich erreichbar machen_  
 > Das SMGW ist unveränderbar auf `192.168.100.100` konfiguriert, Home Assistant läuft meist auf einer lokalen IP wie z.B. `192.168.2.x` o.ä.
 > Wie du deinem HA-Server ganz einfach eine zweite IP im `192.168.100.x`-Netz gibst, erklärt die
 > [Netzwerk-Einrichtungsanleitung](docs/network-setup.md).
