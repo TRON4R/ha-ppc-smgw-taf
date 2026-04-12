@@ -36,14 +36,14 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 ## Voraussetzungen
 
 - PPC Smart Meter Gateway mit aktivierter HAN-Schnittstelle
-- HAN-Zugangsdaten (Benutzername + Passwort) vom Messstellenbetreiber
+- HAN-Zugangsdaten (Benutzername + Passwort) vom Messstellenbetreiber (MSB)
 - Der "Home Assistant"-Server und das SMGW müssen sich IP-technisch gegenseitig "sehen" können.
 
 > [!TIP]
-> **EINFACHE LÖSUNG FÜR DAS IP-ROUTING-PROBLEM:**  
-> _Home Assistant und SMGW im selben IP-Bereich erreichbar machen_  
-> Das SMGW ist unveränderbar auf `192.168.100.100` konfiguriert, Home Assistant läuft meist auf einer lokalen IP wie z.B. `192.168.2.x` o.ä.
-> Wie du deinem HA-Server ganz einfach eine zweite IP im `192.168.100.x`-Netz gibst, erklärt die
+> **EINE EINFACHE LÖSUNG FÜR DAS SMGW IP-ROUTING-PROBLEM:**  
+> _(Home Assistant und SMGW im selben IP-Bereich erreichbar machen)_  
+> Das SMGW ist in der Regel unveränderbar auf `192.168.100.100` konfiguriert, Home Assistant läuft meist auf einer lokalen IP wie z.B. `192.168.2.x` o.ä.
+> Wie du deinem HA-Server ganz einfach eine zweite IP im `192.168.100.x`-Netz gibst und damit die Verbindung herstellst, erklärt die
 > [Netzwerk-Einrichtungsanleitung](docs/network-setup.md).
 
 ## Installation
