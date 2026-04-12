@@ -28,10 +28,10 @@ Alle Sensoren sind kompatibel mit dem Home Assistant **Energie-Dashboard**.
 
 Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-Integration fragt aktuelle Zählerstände in festen 10-Minuten-Intervallen ab (unabhängig von der Nutzereinstellung beim Setup). Einige Nutzer berichten, dass sie vom SMGW gesperrt wurden, weil die Abfragehäufigkeit als zu hoch eingestuft wurde. Diese Integration verfolgt einen anderen Ansatz:
 
-- **Ein Abruf pro Tag** (5 HTTP-Requests insgesamt, zu einer konfigurierbaren Uhrzeit)
+- **Ein Abruf pro Tag** (5 HTTP-Requests insgesamt, zu einer konfigurierbaren Uhrzeit. Damit kein Risiko einer SMGW-Sperrung wegen Überbeanspruchung)
 - **Geeichte Werte** vom Zählerstand-Endpunkt des SMGW (keine Live-Momentaufnahmen)
-- **Exakte Tarifaufteilung** anhand des genauen Zählerstands zum konfigurierbaren Tarifwechselzeitpunkt
-- **Keine Timing-Probleme** — die Werte stammen aus den Tagesgrenzen des SMGW, nicht aus der HA-Uhr
+- **Exakte Tarifaufteilung** anhand des sekundengenauen Zählerstands zum konfigurierten Tarifwechselzeitpunkt
+- **Keine Timing-Probleme** — die Werte basieren auf den offiziellen Tagesgrenzen des SMGW, nicht auf der lokalen Uhrzeit des „Home Assistant"-Servers
 
 ## Voraussetzungen
 
