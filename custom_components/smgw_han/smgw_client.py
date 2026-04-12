@@ -515,14 +515,24 @@ class SmgwClient:
                     "assuming no feed-in (no PV system)",
                     target_date,
                 )
-            else:
+                export_a = 0.0
+                export_c = 0.0
+            elif export_a is not None:
+                # Have start but not end — cannot compute delta
                 _LOGGER.warning(
-                    "Incomplete export readings for %s "
-                    "(start=%s, end=%s) — setting feed-in to 0",
-                    target_date, export_a, export_c,
+                    "Missing export end reading for %s "
+                    "(start=%.4f, end=missing) — setting feed-in to 0",
+                    target_date, export_a,
                 )
-            export_a = export_a or 0.0
-            export_c = export_c or 0.0
+                export_c = export_a
+            else:
+                # Have end but not start — cannot compute delta
+                _LOGGER.warning(
+                    "Missing export start reading for %s "
+                    "(start=missing, end=%.4f) — setting feed-in to 0",
+                    target_date, export_c,
+                )
+                export_a = export_c
 
         daily_import_go = round(import_b - import_a, 4)
         daily_import_standard = round(import_c - import_b, 4)
