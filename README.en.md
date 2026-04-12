@@ -38,6 +38,12 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 - PPC Smart Meter Gateway with HAN interface enabled
 - HAN credentials (username + password) from your electricity provider
 
+> [!TIP]
+> **Making Home Assistant and the SMGW reachable in the same IP range**
+> The SMGW is fixed at `192.168.100.100`, while Home Assistant typically runs on `192.168.2.x` or similar.
+> The [network setup guide](docs/network-setup.md) (German) explains how to assign your HA server
+> a second IP address in the `192.168.100.x` range.
+
 ## Installation
 
 ### HACS (recommended)
