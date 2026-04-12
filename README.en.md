@@ -40,7 +40,7 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 - Your Home Assistant server and the SMGW must be able to reach each other via IP.
 
 > [!TIP]
-> **A SIMPLE SOLUTION FOR THE SMGW IP ROUTING PROBLEM:**
+> **A SIMPLE SOLUTION FOR THE SMGW IP ROUTING PROBLEM:**  
 > _(Making Home Assistant and the SMGW reachable in the same IP range)_
 >
 > The SMGW is permanently fixed at `192.168.100.100`, while Home Assistant typically runs on a local IP like `192.168.2.x` or similar.
