@@ -100,7 +100,7 @@ Die Entity-IDs findest du unter **Einstellungen → Geräte & Dienste → Entit�
 
 ## Anwendungsfall
 
-Diese Integration wurde primär für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist aber über das GUI einstellbar. Falls du eine völlig andere Tarifstruktur nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder besser einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam die Integration entsprechend erweitern können.
+Diese Integration wurde primär für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist aber über das GUI einstellbar. Falls du eine völlig andere Tarifstruktur nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder idealerweise gleich einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam die Integration entsprechend erweitern können.
 
 ## Lizenz
 
