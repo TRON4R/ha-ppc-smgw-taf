@@ -28,21 +28,24 @@ All sensors are compatible with the Home Assistant **Energy Dashboard**.
 
 The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) integration polls current meter readings at fixed 10 minute intervals (ignoring the respective user setting during setup). Some users have reported being locked out of their SMGW, because the frequency of requests was deemed as too high by the SMGW. So this integration takes a different approach:
 
-- **One fetch per day** (5 HTTP requests total, at a configurable time)
+- **One fetch per day** (5 HTTP requests total, at a configurable time — eliminating any risk of being locked out by the SMGW due to excessive polling)
 - **Certified values** from the SMGW's Zählerstand endpoint (not live meter snapshots)
-- **Accurate tariff split** using the exact meter reading at the configurable tariff switch time from the SMGW
-- **No timing issues** — values come from the SMGW's own daily boundaries, not HA's clock
+- **Accurate tariff split** using the second-precise meter reading at the configured tariff switch time
+- **No timing issues** — values are based on the SMGW's official daily boundaries, not the local clock of the Home Assistant server
 
 ## Requirements
 
 - PPC Smart Meter Gateway with HAN interface enabled
-- HAN credentials (username + password) from your electricity provider
+- HAN credentials (username + password) from your electricity provider (MSB)
+- Your Home Assistant server and the SMGW must be able to reach each other via IP.
 
 > [!TIP]
-> **Making Home Assistant and the SMGW reachable in the same IP range**
-> The SMGW is fixed at `192.168.100.100`, while Home Assistant typically runs on `192.168.2.x` or similar.
-> The [network setup guide](docs/network-setup.md) (German) explains how to assign your HA server
-> a second IP address in the `192.168.100.x` range.
+> **A SIMPLE SOLUTION FOR THE SMGW IP ROUTING PROBLEM:**
+> _(Making Home Assistant and the SMGW reachable in the same IP range)_
+>
+> The SMGW is permanently fixed at `192.168.100.100`, while Home Assistant typically runs on a local IP like `192.168.2.x` or similar.
+> The [network setup guide](docs/network-setup.en.md) explains how to easily assign your HA server
+> a second IP address in the `192.168.100.x` range to establish the connection.
 
 ## Installation
 
@@ -107,7 +110,7 @@ You can find your entity IDs under **Settings → Devices & Services → Entitie
 
 ## Intended use case
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
+This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or ideally a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
 
 ## License
 
