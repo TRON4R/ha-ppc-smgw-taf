@@ -14,7 +14,8 @@ Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert un
 6. _Netzmaske_ `255.255.255.0` prüfen (sollte automatisch korrekt sein)
 7. _**Speichern**_
 
-Am Ende sollte alles so aussehen, wie in diesem Screenshot:
+
+**Am Ende sollte alles so aussehen, wie in diesem Screenshot:**
 ![Netzwerkschnittstellen konfigurieren in Home Assistant](network-setup.png)
 
 ## Hinweise
