@@ -76,6 +76,28 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 | Zählerstand Einspeisung Endstand Vortag | Absoluter Einspeise-Zählerstand zu Tagesbeginn (00:00) | `energy` | `total_increasing` |
 | Tagesdatum | Datum der zuletzt abgerufenen Daten | `date` | — |
 
+## Dashboard-Kachel: Verbrauchshistorie (täglich)
+
+**Voraussetzung:** [ApexCharts Card](https://github.com/RomRider/apexcharts-card) (über HACS installierbar)
+
+![Verbrauchshistorie SMGW täglich](dashboard/verbrauchshistorie_taeglich.png)
+
+Die Kachel zeigt die letzten 30 Tage als gestapeltes Balkendiagramm:
+- **Go** (blau): Verbrauch im vergünstigten Zeitfenster (Zeitfenster 1)
+- **Standard** (pink): Verbrauch im Normalpreis-Zeitfenster (Zeitfenster 2)
+- Tooltip (mouse-over): Einzelwerte je Tarifsegment pro Tag
+- Kopfzeile: kumulierter Gesamtverbrauch je Segment im angezeigten Zeitraum
+
+### Einbindung
+
+1. [`dashboard/verbrauchshistorie_taeglich.yaml`](dashboard/verbrauchshistorie_taeglich.yaml) herunterladen
+2. In Home Assistant: Dashboard → Kachel hinzufügen → Manuelle Karte
+3. YAML einfügen und die Entity-IDs auf die eigenen anpassen:
+   - `sensor.octopus_smgw_tagesverbrauch_zeitfenster_2` → eigene Entity-ID für Zeitfenster 2
+   - `sensor.octopus_smgw_tagesverbrauch_zeitfenster_1` → eigene Entity-ID für Zeitfenster 1
+
+Die Entity-IDs findest du unter **Einstellungen → Geräte & Dienste → Entitäten**.
+
 ## Anwendungsfall
 
 Diese Integration wurde für den **Octopus Energy Go-Tarif** in Deutschland entwickelt, der einen vergünstigten Strompreis zwischen **00:00 und 04:59:59** (Go-Tarif) und einen Normalpreis von **05:00 bis 23:59:59** bietet. Der Tarifwechselzeitpunkt ist konfigurierbar. Falls du eine völlig andere Tarifstruktur oder einen anderen Wechselzeitpunkt nutzt, eröffne bitte ein [Issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) oder besser einen [Pull Request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls), damit wir gemeinsam eine Lösung finden.

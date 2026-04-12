@@ -1,0 +1,65 @@
+type: custom:apexcharts-card
+header:
+  show: true
+  title: Verbrauchshistorie SMGW (täglich) - statistikbasiert
+  show_states: true
+  colorize_states: true
+graph_span: 30d
+span:
+  end: day
+apex_config:
+  chart:
+    stacked: true
+    toolbar:
+      show: true
+      export:
+        csv:
+          filename: SMGW_Verbrauch_30_Tage
+          columnDelimiter: ;
+          headerCategory: Datum
+          headerValue: Verbrauch (kWh)
+  dataLabels:
+    enabled: false
+    enabledOnSeries:
+      - 1
+  plotOptions:
+    bar:
+      dataLabels:
+        total:
+          enabled: true
+          style:
+            fontSize: 11px
+            fontWeight: 600
+  xaxis:
+    labels:
+      datetimeFormatter:
+        day: dd
+        month: M
+    tooltip:
+      enabled: false
+  tooltip:
+    x:
+      format: d. MMM yyyy
+series:
+  - entity: sensor.octopus_smgw_tagesverbrauch_zeitfenster_2
+    type: column
+    name: Standard
+    color: "#F050F8"
+    float_precision: 3
+    statistics:
+      type: change
+      period: day
+      align: start
+    show:
+      datalabels: false
+  - entity: sensor.octopus_smgw_tagesverbrauch_zeitfenster_1
+    type: column
+    name: Go
+    color: "#50B0F8"
+    float_precision: 3
+    statistics:
+      type: change
+      period: day
+      align: start
+    show:
+      datalabels: false

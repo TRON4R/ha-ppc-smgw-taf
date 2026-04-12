@@ -77,6 +77,28 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 | Daily date | Date of the last fetched data | `date` | — |
 
 
+## Dashboard card: Daily consumption history
+
+**Prerequisite:** [ApexCharts Card](https://github.com/RomRider/apexcharts-card) (installable via HACS)
+
+![Daily consumption history SMGW](dashboard/verbrauchshistorie_taeglich.png)
+
+The card displays the last 30 days as a stacked bar chart:
+- **Go** (blue): Consumption during the discounted tariff slot (slot 1)
+- **Standard** (pink): Consumption during the standard tariff slot (slot 2)
+- Tooltip (mouse-over): Individual values per tariff segment per day
+- Header: Cumulative total per segment over the displayed period
+
+### How to add it
+
+1. Download [`dashboard/verbrauchshistorie_taeglich.yaml`](dashboard/verbrauchshistorie_taeglich.yaml)
+2. In Home Assistant: Dashboard → Add card → Manual card
+3. Paste the YAML and adjust the entity IDs to match yours:
+   - `sensor.octopus_smgw_tagesverbrauch_zeitfenster_2` → your entity ID for slot 2
+   - `sensor.octopus_smgw_tagesverbrauch_zeitfenster_1` → your entity ID for slot 1
+
+You can find your entity IDs under **Settings → Devices & Services → Entities**.
+
 ## Intended use case
 
 This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**. The tariff split time is configurable. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or better a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
