@@ -489,6 +489,7 @@ class SmgwClient:
 
         tariff_str = f"{tariff_switch_hour:02d}:{tariff_switch_minute:02d}"
 
+        # Import readings are mandatory
         missing = []
         if import_a is None:
             missing.append(f"Import at 00:00 on {target_date}")
@@ -496,10 +497,6 @@ class SmgwClient:
             missing.append(f"Import at {tariff_str} on {target_date}")
         if import_c is None:
             missing.append(f"Import at 00:00 on {next_day}")
-        if export_a is None:
-            missing.append(f"Export at 00:00 on {target_date}")
-        if export_c is None:
-            missing.append(f"Export at 00:00 on {next_day}")
 
         if missing:
             all_timestamps = sorted(
@@ -509,6 +506,23 @@ class SmgwClient:
                 f"Missing required meter readings: {', '.join(missing)}. "
                 f"Available timestamps: {all_timestamps}"
             )
+
+        # Export readings are optional (not all meters have PV / feed-in)
+        if export_a is None or export_c is None:
+            if not export_readings:
+                _LOGGER.info(
+                    "No export (2.8.0) readings found for %s — "
+                    "assuming no feed-in (no PV system)",
+                    target_date,
+                )
+            else:
+                _LOGGER.warning(
+                    "Incomplete export readings for %s "
+                    "(start=%s, end=%s) — setting feed-in to 0",
+                    target_date, export_a, export_c,
+                )
+            export_a = export_a or 0.0
+            export_c = export_c or 0.0
 
         daily_import_go = round(import_b - import_a, 4)
         daily_import_standard = round(import_c - import_b, 4)
