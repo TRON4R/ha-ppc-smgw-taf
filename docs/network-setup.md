@@ -1,6 +1,6 @@
 # Netzwerk-Einrichtung: Home Assistant und SMGW verbinden
 
-Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert und lässt sich nicht ändern. Home Assistant läuft typischerweise im Router-Netzwerk auf einer Adresse wie z.B. `192.168.2.12`. Da diese beiden Netzbereiche nicht direkt miteinander kommunizieren, muss dem "Home Assistant"-Server eine zweite IP-Adresse aus dem `192.168.100.x`-Bereich zugewiesen werden. Dies geht recht einfach wie folgt:
+Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert und lässt sich nicht ändern. Home Assistant läuft typischerweise im Router-Netzwerk auf einer lokalen IP-Adresse wie z.B. `192.168.2.12`. Da diese beiden Netzbereiche nicht direkt miteinander kommunizieren, muss dem "Home Assistant"-Server eine zweite IP-Adresse aus dem `192.168.100.x`-Bereich zugewiesen werden. Dies geht recht einfach wie folgt:
 
 ## Zweite IP-Adresse in Home Assistant einrichten
 
@@ -8,11 +8,13 @@ Das PPC Smart Meter Gateway ist fix auf die IP `192.168.100.100` konfiguriert un
 2. Dort im Abschnitt _Netzwerkschnittstellen konfigurieren_ den Bereich _IPv4_ aufklappen
 3. _Statisch_ selektieren (falls nicht sowieso schon aktiv. Das ist nötig, weil _Automatisch_ (d.h. DHCP) und zwei IP-Adressen sich in HA gegenseitig ausschließen)
 4. _+ Adresse hinzufügen_ anklicken
-5. Im neuen Feld die _IP-Adresse_ eingeben, z. B. `192.168.100.12`
-   - Die letzte Zahl (hier `12`) ist frei wählbar, solange diese IP im Bereich `192.168.100.x` nicht bereits vergeben ist.
-6. Netzmaske `255.255.255.0` prüfen (sollte automatisch korrekt sein)
-7. **Speichern**
+5. Im neuen Feld mit 0.0.0.0 die neue _IP-Adresse_ eingeben, z.B. `192.168.100.12`
+   - Die letzte Zahl (hier `12`) ist frei wählbar, solange diese IP nicht bereits im Bereich `192.168.100.x` vergeben ist Normalerweise sollte der aber au0er der IP 192.168.100.100 vom SGMW leer sein.
+   - Achtung! Gut aufpassen, dass man nicht das falsche Feld ausfüllt und sich damit den eigenen Ast absägt, auf dem man sitzt.
+6. _Netzmaske_ `255.255.255.0` prüfen (sollte automatisch korrekt sein)
+7. _**Speichern**_
 
+Am Ende sollte alles so aussehen, wie in diesem Screenshot:
 ![Netzwerkschnittstellen konfigurieren in Home Assistant](network-setup.png)
 
 ## Hinweise
