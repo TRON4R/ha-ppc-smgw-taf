@@ -23,7 +23,7 @@ All that's left is to start the SMGW integration, which should then successfully
 
 ## Notes
 
-- Of course, the HAN port of the SMGW must be connected via LAN cable to the same switch that the Home Assistant server is connected to. If Home Assistant is running in a virtual machine (e.g. on a NAS such as Synology or QNAP), the IP address or IP range of the NAS itself does not matter. What matters is only that Home Assistant itself has this additional IP address in the SMGW's IP range active.
+- Of course, the HAN port of the SMGW must be connected via LAN cable to the same switch that the Home Assistant server is connected to. If Home Assistant is running in a virtual machine (e.g. on a NAS such as Synology or QNAP), the IP address or IP range of the NAS (the hosting device) itself does not matter. What matters is only that Home Assistant instance has this additional IP address in the SMGW's IP range active (as achieved by the instructions above).
 - A restart of Home Assistant may be required after saving for the change to take effect.
 - Depending on your setup (VM, host system), a full reboot of the virtual machine or the host computer may be needed for the new IP to become active.
 - The new IP does **not** need to be entered as the SMGW URL — that stays `https://192.168.100.100/cgi-bin/hanservice.cgi`. The second IP simply allows Home Assistant to reach `192.168.100.100` at all, without any complicated routing tables.
