@@ -10,6 +10,8 @@ CONF_UPDATE_TIME = "update_time"
 CONF_TARIFF_SWITCH_HOUR = "tariff_switch_hour"
 CONF_TARIFF_SWITCH_MINUTE = "tariff_switch_minute"
 CONF_METER_ID = "meter_id"  # Parsed from SMGW during setup
+CONF_INSTANCE_ID = "instance_id"  # Per-entry counter (1, 2, ...) for stable entity / device slug
+CONF_DEVICE_NAME = "device_name"  # Optional user-defined device label, overrides default
 
 # Defaults
 DEFAULT_URL = "https://192.168.100.100/cgi-bin/hanservice.cgi"

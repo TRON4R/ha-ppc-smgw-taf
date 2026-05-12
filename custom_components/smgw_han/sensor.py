@@ -20,6 +20,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_DEVICE_NAME,
+    CONF_INSTANCE_ID,
     CONF_METER_ID,
     DOMAIN,
     SENSOR_DAILY_CONSUMPTION_SLOT_1,
@@ -34,10 +36,7 @@ from .const import (
 from . import SmgwTafConfigEntry
 from .coordinator import SmgwTafCoordinator
 
-# Stable installation ID — independent of physical meter hardware.
-# Multi-meter support is deliberately out of scope; this integration
-# always represents a single metering point per config entry.
-STABLE_DEVICE_ID = "smgw_meter1"
+DEFAULT_DEVICE_NAME = "PPC SMGW"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -168,13 +167,19 @@ class SmgwTafSensor(CoordinatorEntity[SmgwTafCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        # Identity is stable and independent of physical meter hardware.
-        # If the meter is replaced (new meter_id), entities remain unchanged.
-        self._attr_unique_id = f"{STABLE_DEVICE_ID}_{description.key}"
+        # Identity is stable per config entry and independent of physical meter
+        # hardware. If the meter is replaced (new meter_id), entities remain
+        # unchanged. The instance counter is assigned at entry creation and
+        # reused if an entry is deleted and re-added, so historical statistics
+        # carry over after a physical meter swap.
+        instance_id = config_entry.data.get(CONF_INSTANCE_ID, 1)
+        device_slug = f"smgw_meter{instance_id}"
+        self._attr_unique_id = f"{device_slug}_{description.key}"
         meter_id = config_entry.data.get(CONF_METER_ID)
+        custom_name = (config_entry.data.get(CONF_DEVICE_NAME) or "").strip()
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, STABLE_DEVICE_ID)},
-            name="PPC SMGW",
+            identifiers={(DOMAIN, device_slug)},
+            name=custom_name or DEFAULT_DEVICE_NAME,
             manufacturer="PPC",
             model="Smart Meter Gateway",
             serial_number=meter_id,

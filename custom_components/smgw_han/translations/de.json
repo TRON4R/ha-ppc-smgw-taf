@@ -10,13 +10,15 @@
           "password": "Passwort",
           "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
           "tariff_switch_minute": "Start Standard-Tarif (Minute)",
-          "update_time": "Abrufzeit"
+          "update_time": "Abrufzeit",
+          "device_name": "Gerätename (optional)"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "tariff_switch_hour": "Volle Stunde, ab der der Standard-Tarif gilt",
           "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
-          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
+          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte",
+          "device_name": "Nur ausfüllen, wenn du diese Integration mehrfach mit unterschiedlichen Logins zum selben SMGW verwendest — z.B. wenn dir dein Messstellenbetreiber separate Zugangsdaten für die Verbrauchs- (1.8.0) und die Einspeise-Abfrage (2.8.0) gegeben hat. Vergib in dem Fall hier sprechende Namen wie „SMGW Verbrauch\" und „SMGW Einspeisung\", damit du die beiden Geräte in Home Assistant unterscheiden kannst. Leer lassen, wenn du nur einen SMGW oder unterschiedliche physische Zähler abfragst — dann reicht der Standardname."
         }
       },
       "reauth_confirm": {
@@ -49,13 +51,15 @@
           "password": "Passwort",
           "tariff_switch_hour": "Start Standard-Tarif (Stunde)",
           "tariff_switch_minute": "Start Standard-Tarif (Minute)",
-          "update_time": "Abrufzeit"
+          "update_time": "Abrufzeit",
+          "device_name": "Gerätename (optional)"
         },
         "data_description": {
           "url": "URL der SMGW HAN-Schnittstelle (Standard: https://192.168.100.100/cgi-bin/hanservice.cgi)",
           "tariff_switch_hour": "Volle Stunde, ab der der Standard-Tarif gilt",
           "tariff_switch_minute": "Minute des Tarifwechsels (0, 15, 30 oder 45)",
-          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte"
+          "update_time": "Tageszeit für den automatischen Abruf der Vortageswerte",
+          "device_name": "Nur ausfüllen, wenn du diese Integration mehrfach mit unterschiedlichen Logins zum selben SMGW verwendest — z.B. wenn dir dein Messstellenbetreiber separate Zugangsdaten für die Verbrauchs- (1.8.0) und die Einspeise-Abfrage (2.8.0) gegeben hat. Vergib in dem Fall hier sprechende Namen wie „SMGW Verbrauch\" und „SMGW Einspeisung\", damit du die beiden Geräte in Home Assistant unterscheiden kannst. Leer lassen, wenn du nur einen SMGW oder unterschiedliche physische Zähler abfragst — dann reicht der Standardname."
         }
       }
     },

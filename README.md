@@ -71,6 +71,22 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
    - **Benutzername** und **Passwort**: HAN-Zugangsdaten
    - **Start Standard-Tarif**: Uhrzeit des Tarifwechsels (Standard: 05:00, konfigurierbar)
    - **Abrufzeit**: Uhrzeit des täglichen Datenabrufs (Standard: 00:15)
+   - **Gerätename** (optional, siehe nächster Abschnitt)
+
+## Mehrere SMGWs / mehrere Zugänge
+
+Seit Version 2.0 kann die Integration beliebig viele SMGW-Instanzen parallel verwalten. Klicke einfach erneut auf „Integration hinzufügen" und lege einen weiteren Zugang an. Jeder Eintrag bekommt einen eigenen Satz Entitäten (`smgw_meter1_*`, `smgw_meter2_*`, …) und ein eigenes Gerät im Geräte-Register.
+
+Typische Anwendungsfälle:
+
+- **Zwei physische Zähler im Haus** (z.B. Modul-2-Konstellation mit getrenntem Bezugs- und Erzeugungszähler): Beide SMGWs werden je mit eigenen Zugangsdaten und unter Umständen eigener IP-Adresse als separate Einträge angelegt.
+- **Ein SMGW, zwei Logins**: Manche Messstellenbetreiber vergeben separate HAN-Zugangsdaten für die Verbrauchsabfrage (OBIS 1.8.0) und die Einspeiseabfrage (OBIS 2.8.0). Beide Logins können als zwei unabhängige Einträge gegen denselben SMGW konfiguriert werden. In diesem Fall solltest du das optionale Feld **Gerätename** nutzen und sprechende Namen wie „SMGW Verbrauch" und „SMGW Einspeisung" vergeben, damit sich die beiden Geräte in Home Assistant unterscheiden lassen.
+
+Das Feld **Gerätename** bleibt leer, wenn du nur einen einzelnen SMGW konfigurierst oder wenn die SMGWs ohnehin unterschiedliche physische Zähler abfragen — dann genügt der Standardname „PPC SMGW", den Home Assistant bei mehreren gleichnamigen Geräten automatisch durchnummeriert.
+
+### Verhalten beim Zählertausch
+
+Wenn der Messstellenbetreiber den physischen Zähler im Keller tauscht, kannst du die Zugangsdaten einfach über den Optionen-Dialog des bestehenden Eintrags aktualisieren — Entitäten und Statistik-Historie bleiben unverändert erhalten. Auch wenn du den Eintrag stattdessen löschst und neu anlegst, bekommt der neue Eintrag dieselbe interne Nummer wie der vorherige (z.B. wieder „smgw_meter1"), sodass die Long-Term-Statistik im Energie-Dashboard nahtlos weitergeführt wird.
 
 ## Sensoren
 

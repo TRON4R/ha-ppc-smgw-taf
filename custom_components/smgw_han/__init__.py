@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
+    CONF_INSTANCE_ID,
     CONF_PASSWORD,
     CONF_URL,
     CONF_USERNAME,
@@ -28,6 +29,28 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: SmgwTafConfigEntry
 ) -> bool:
     """Set up SMGW HAN from a config entry."""
+    # One-time backfill for entries created with pre-2.0 versions:
+    # - instance_id was introduced in 2.0; absent => entry predates multi-device
+    #   support and is the sole instance, so it takes id 1 (matches its
+    #   historical hardcoded entity slug "smgw_meter1_*", preserving history).
+    # - unique_id was bare meter_id; new format is "meter_id:username" so the
+    #   same physical SMGW can be added once per distinct login.
+    new_data = dict(entry.data)
+    new_unique_id = entry.unique_id
+    needs_update = False
+    if CONF_INSTANCE_ID not in new_data:
+        new_data[CONF_INSTANCE_ID] = 1
+        needs_update = True
+    if entry.unique_id and ":" not in entry.unique_id:
+        username = entry.data.get(CONF_USERNAME)
+        if username:
+            new_unique_id = f"{entry.unique_id}:{username}"
+            needs_update = True
+    if needs_update:
+        hass.config_entries.async_update_entry(
+            entry, data=new_data, unique_id=new_unique_id
+        )
+
     client = SmgwClient(
         base_url=entry.data[CONF_URL],
         username=entry.data[CONF_USERNAME],

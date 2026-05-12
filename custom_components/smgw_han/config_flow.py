@@ -26,6 +26,8 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_DEVICE_NAME,
+    CONF_INSTANCE_ID,
     CONF_METER_ID,
     CONF_PASSWORD,
     CONF_TARIFF_SWITCH_HOUR,
@@ -107,8 +109,20 @@ def _build_schema(
                 CONF_UPDATE_TIME,
                 default=d.get(CONF_UPDATE_TIME, DEFAULT_UPDATE_TIME),
             ): TimeSelector(TimeSelectorConfig()),
+            vol.Optional(
+                CONF_DEVICE_NAME,
+                default=d.get(CONF_DEVICE_NAME, ""),
+            ): TextSelector(TextSelectorConfig()),
         }
     )
+
+
+def _next_instance_id(used: set[int]) -> int:
+    """Return the smallest positive integer not already in use."""
+    n = 1
+    while n in used:
+        n += 1
+    return n
 
 
 class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -161,10 +175,28 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
                 await client.close()
 
             if not errors:
-                await self.async_set_unique_id(device_info.meter_id)
+                # Unique id combines meter id and username so the same physical
+                # SMGW can be added once per distinct login (e.g. one credential
+                # set for grid import, another for feed-in).
+                await self.async_set_unique_id(
+                    f"{device_info.meter_id}:{user_input[CONF_USERNAME]}"
+                )
                 self._abort_if_unique_id_configured()
 
                 user_input[CONF_METER_ID] = device_info.meter_id
+
+                # Assign the lowest free positive integer as instance id.
+                # Existing entries from pre-2.0 installations are treated as
+                # instance 1 (matches their historical hardcoded slug).
+                used_ids = {
+                    entry.data.get(CONF_INSTANCE_ID, 1)
+                    for entry in self._async_current_entries()
+                }
+                user_input[CONF_INSTANCE_ID] = _next_instance_id(used_ids)
+
+                # Normalize empty device name to absent so sensor falls back to default.
+                if not user_input.get(CONF_DEVICE_NAME, "").strip():
+                    user_input.pop(CONF_DEVICE_NAME, None)
 
                 host = SmgwClient.parse_host_from_url(user_input[CONF_URL])
                 return self.async_create_entry(
@@ -264,6 +296,10 @@ class SmgwTafOptionsFlow(OptionsFlow):
             )
 
             new_data = {**self.config_entry.data, **user_input}
+
+            # Normalize empty device name to absent so sensor falls back to default.
+            if not new_data.get(CONF_DEVICE_NAME, "").strip():
+                new_data.pop(CONF_DEVICE_NAME, None)
 
             client = SmgwClient(
                 base_url=new_data[CONF_URL],
