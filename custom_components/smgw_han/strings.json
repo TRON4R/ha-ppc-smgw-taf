@@ -33,7 +33,7 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
-      "parse_error": "Could not parse the SMGW response. Please wait a moment and try again.",
+      "parse_error": "Could not parse the SMGW response. Please double-check the username and password. If the credentials are correct, wait up to 15 minutes and try again.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
@@ -67,7 +67,7 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
-      "parse_error": "Could not parse the SMGW response. Please wait a moment and try again.",
+      "parse_error": "Could not parse the SMGW response. Please double-check the username and password. If the credentials are correct, wait up to 15 minutes and try again.",
       "unknown": "An unexpected error occurred."
     }
   },

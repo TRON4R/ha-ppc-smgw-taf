@@ -33,7 +33,7 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
-      "parse_error": "Antwort des SMGW konnte nicht ausgewertet werden. Bitte einen Moment warten und erneut versuchen.",
+      "parse_error": "Antwort des SMGW konnte nicht ausgewertet werden. Bitte Benutzername und Passwort prüfen. Falls die Zugangsdaten korrekt sind, bis zu 15 Minuten warten und erneut versuchen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
@@ -67,7 +67,7 @@
     "error": {
       "cannot_connect": "Verbindung zum SMGW fehlgeschlagen. URL und Netzwerkverbindung prüfen.",
       "invalid_auth": "Ungültiger Benutzername oder Passwort.",
-      "parse_error": "Antwort des SMGW konnte nicht ausgewertet werden. Bitte einen Moment warten und erneut versuchen.",
+      "parse_error": "Antwort des SMGW konnte nicht ausgewertet werden. Bitte Benutzername und Passwort prüfen. Falls die Zugangsdaten korrekt sind, bis zu 15 Minuten warten und erneut versuchen.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     }
   },
