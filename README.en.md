@@ -62,6 +62,19 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 1. Copy `custom_components/smgw_han/` to your Home Assistant `custom_components/` directory
 2. Restart Home Assistant
 
+### Beta versions (multi-SMGW support)
+
+Multi-SMGW support is currently in beta. To try the beta:
+
+1. HACS → Integrations → open "PPC SMGW HAN Daily Import"
+2. Three-dot menu in the top right → **"Re-download"**
+3. Expand **"Need a different version?"** in the dialog
+4. From the **"Release"** dropdown, pick the desired beta version (with an orange `pre-release` label, e.g. `v2.0.0b3`)
+5. Click **"Download"**
+6. Restart Home Assistant
+
+Your existing configuration remains untouched — all entities and the Energy Dashboard history are preserved.
+
 ## Configuration
 
 1. Go to Settings → Devices & Services → Add Integration
@@ -71,6 +84,25 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
    - **Username** and **Password**: Your HAN credentials
    - **Standard tariff start time**: When the standard tariff begins (default: 05:00, configurable)
    - **Fetch time**: Time of the daily data fetch (default: 00:15)
+   - **Device name** (optional, see next section)
+
+## Multiple SMGWs / multiple logins
+
+> [!IMPORTANT]
+> Multi-SMGW support has been available since **v2.0.0b1** but is currently still in **beta**. HACS only shows the beta version if you explicitly pick it from the version dropdown under "Re-download" (see [Installation → Beta versions](#beta-versions-multi-smgw-support)). Existing users on default settings continue to receive stable v1.x.
+
+Since version 2.0, the integration can manage any number of SMGW instances in parallel. Just click "Add Integration" again and configure another login. Each entry gets its own set of entities (`smgw_meter1_*`, `smgw_meter2_*`, …) and its own device in the device registry.
+
+Typical use cases:
+
+- **Two physical meters in the building** (e.g. a Modul-2 setup with a separate import and PV-generation meter): both SMGWs are configured as separate entries with their own credentials and, if applicable, their own IP address.
+- **One SMGW, two logins**: some metering point operators issue separate HAN credentials for consumption (OBIS 1.8.0) and feed-in (OBIS 2.8.0). Both logins can be configured as two independent entries against the same SMGW. In this case use the optional **Device name** field and pick meaningful names like "SMGW Import" and "SMGW Export" so the two devices are clearly distinguishable in Home Assistant.
+
+Leave **Device name** empty when you only run a single SMGW or your SMGWs target distinct physical meters — the default name "PPC SMGW" is sufficient, and Home Assistant automatically numbers devices with identical names.
+
+### Behaviour on meter replacement
+
+When your metering point operator swaps the physical meter in your basement, you can simply update the credentials via the options dialog of the existing entry — entities and statistics history remain untouched. Even if you instead delete the entry and add it back, the new entry will reuse the freed internal slot (e.g. `smgw_meter1` again), so long-term statistics in the Energy Dashboard continue seamlessly.
 
 ## Sensors
 
