@@ -33,6 +33,7 @@
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
+      "parse_error": "Could not parse the SMGW response. Please wait a moment and try again.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
@@ -59,13 +60,14 @@
           "tariff_switch_hour": "Hour when the standard tariff begins",
           "tariff_switch_minute": "Minute of the tariff switch (0, 15, 30 or 45)",
           "update_time": "Time of day for the automatic daily data fetch",
-          "device_name": "Leave empty unless you set this integration up multiple times against the same SMGW (e.g. separate logins for grid import and feed-in). In that case enter a distinct name to tell the devices apart."
+          "device_name": "Custom name (e.g. \"SMGW Import\" / \"SMGW Export\") for the case where you run multiple logins against the same SMGW as separate entries. Otherwise leave empty."
         }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect to the SMGW. Check the URL and network connection.",
       "invalid_auth": "Invalid username or password.",
+      "parse_error": "Could not parse the SMGW response. Please wait a moment and try again.",
       "unknown": "An unexpected error occurred."
     }
   },

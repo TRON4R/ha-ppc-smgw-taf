@@ -167,7 +167,7 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             except SmgwParseError as err:
                 _LOGGER.error("SMGW validation failed: %s", err)
-                errors["base"] = "unknown"
+                errors["base"] = "parse_error"
             except Exception:
                 _LOGGER.exception("Unexpected error during connection test")
                 errors["base"] = "unknown"
@@ -324,7 +324,7 @@ class SmgwTafOptionsFlow(OptionsFlow):
                 errors["base"] = "cannot_connect"
             except SmgwParseError as err:
                 _LOGGER.error("SMGW validation failed: %s", err)
-                errors["base"] = "unknown"
+                errors["base"] = "parse_error"
             except Exception:
                 _LOGGER.exception("Unexpected error during connection test")
                 errors["base"] = "unknown"
