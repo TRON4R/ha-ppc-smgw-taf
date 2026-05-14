@@ -251,6 +251,27 @@ class SmgwClient:
         if not select:
             raise SmgwParseError("Could not find meter dropdown in meterform")
 
+        # Diagnostic: log every option in the dropdown so we can see whether
+        # a single SMGW exposes multiple physical meters (e.g. import meter
+        # + dedicated PV-production meter). Currently the client always uses
+        # the first option; this log is the basis for future meter selection.
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            all_options = select.find_all("option")
+            _LOGGER.debug(
+                "Meter dropdown contains %d option(s)", len(all_options)
+            )
+            for idx, opt in enumerate(all_options):
+                opt_value = opt.get("value", "")
+                opt_text = opt.get_text(strip=True)
+                try:
+                    opt_meter_id = opt_text.removesuffix(".sm").rsplit(".", 1)[-1]
+                except Exception:
+                    opt_meter_id = "<parse-failed>"
+                _LOGGER.debug(
+                    "  option[%d]: mid=%r, text=%r, extracted meter_id=%r",
+                    idx, opt_value, opt_text, opt_meter_id,
+                )
+
         option = select.find("option")
         if not option:
             raise SmgwParseError("No meter found in meter dropdown")
