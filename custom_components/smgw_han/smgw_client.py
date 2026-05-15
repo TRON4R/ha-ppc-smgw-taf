@@ -47,8 +47,16 @@ class MeterReading:
 class SmgwDeviceInfo:
     """Device information parsed from the SMGW."""
 
-    meter_id: str  # e.g. "1lgz0072999211"
+    meter_id: str  # e.g. "1lgz0072999211" (the selected or first one)
     firmware_version: str  # e.g. "00861-34788"
+    available_meter_ids: list[str] = field(default_factory=list)
+    """All meter IDs visible in the SMGW's meter dropdown.
+
+    Single-meter SMGWs return a list of length 1; multi-meter SMGWs
+    (e.g. Modul-2 installations with separate import and PV-production
+    meters) return >=2. Used by the config flow to decide whether a
+    meter-selection step is needed.
+    """
 
 
 @dataclass
@@ -235,12 +243,21 @@ class SmgwClient:
         except Exception:
             return "unknown"
 
-    async def _navigate_to_meter(self) -> tuple[str, str]:
-        """Navigate to the meter page and return (mid, meter_id).
+    @staticmethod
+    def _extract_meter_id(option_text: str) -> str:
+        """Extract the physical meter ID from a dropdown option text.
 
-        Fetches the meterform page and extracts the session mid and the
-        physical meter ID from the dropdown option text, e.g.:
-        "01005e318002.1lgz0072999211.sm" → meter_id "1lgz0072999211"
+        Example: "01005e318002.1lgz0072999211.sm" -> "1lgz0072999211"
+        """
+        return option_text.removesuffix(".sm").rsplit(".", 1)[-1]
+
+    async def _list_meter_options(self) -> list[tuple[str, str]]:
+        """Fetch the meterform page and return all dropdown options.
+
+        Returns a list of (mid, meter_id) tuples in the order they appear in
+        the SMGW's meter dropdown. The list is guaranteed non-empty; the
+        caller does not need to handle the empty case (a SmgwParseError is
+        raised first).
         """
         html = await self._post({"action": "meterform"})
         soup = BeautifulSoup(html, "html.parser")
@@ -251,45 +268,66 @@ class SmgwClient:
         if not select:
             raise SmgwParseError("Could not find meter dropdown in meterform")
 
-        # Diagnostic: log every option in the dropdown so we can see whether
-        # a single SMGW exposes multiple physical meters (e.g. import meter
-        # + dedicated PV-production meter). Currently the client always uses
-        # the first option; this log is the basis for future meter selection.
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            all_options = select.find_all("option")
-            _LOGGER.debug(
-                "Meter dropdown contains %d option(s)", len(all_options)
-            )
-            for idx, opt in enumerate(all_options):
-                opt_value = opt.get("value", "")
-                opt_text = opt.get_text(strip=True)
-                try:
-                    opt_meter_id = opt_text.removesuffix(".sm").rsplit(".", 1)[-1]
-                except Exception:
-                    opt_meter_id = "<parse-failed>"
+        options: list[tuple[str, str]] = []
+        for opt in select.find_all("option"):
+            mid = opt.get("value")
+            if not mid:
+                continue
+            text = opt.get_text(strip=True)
+            meter_id = self._extract_meter_id(text)
+            if not meter_id:
                 _LOGGER.debug(
-                    "  option[%d]: mid=%r, text=%r, extracted meter_id=%r",
-                    idx, opt_value, opt_text, opt_meter_id,
+                    "Skipping dropdown option with unparseable text: %r", text
                 )
+                continue
+            options.append((mid, meter_id))
 
-        option = select.find("option")
-        if not option:
+        if not options:
             raise SmgwParseError("No meter found in meter dropdown")
 
-        mid = option.get("value")
-        if not mid:
-            raise SmgwParseError("Could not extract mid from meter dropdown")
-
-        # Strip trailing ".sm", then take the last dot-separated segment
-        option_text = option.get_text(strip=True)
-        meter_id = option_text.removesuffix(".sm").rsplit(".", 1)[-1]
-        if not meter_id:
-            raise SmgwParseError(
-                f"Could not extract meter ID from dropdown text: {option_text}"
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _LOGGER.debug(
+                "Meter dropdown contains %d option(s)", len(options)
             )
+            for idx, (mid, meter_id) in enumerate(options):
+                _LOGGER.debug(
+                    "  option[%d]: mid=%r, meter_id=%r", idx, mid, meter_id
+                )
 
-        _LOGGER.debug("Found meter mid=%s, meter_id=%s", mid, meter_id)
-        return mid, meter_id
+        return options
+
+    async def _navigate_to_meter(
+        self, target_meter_id: str | None = None
+    ) -> tuple[str, str]:
+        """Navigate to the meter page and return (mid, meter_id).
+
+        If ``target_meter_id`` is given, returns the matching option from the
+        dropdown. If ``None`` (default), returns the first option — preserving
+        legacy behaviour for callers that have not yet been updated.
+        """
+        options = await self._list_meter_options()
+
+        if target_meter_id is None:
+            mid, meter_id = options[0]
+            _LOGGER.debug(
+                "Using first meter (no target specified): mid=%s, meter_id=%s",
+                mid, meter_id,
+            )
+            return mid, meter_id
+
+        for mid, meter_id in options:
+            if meter_id == target_meter_id:
+                _LOGGER.debug(
+                    "Selected configured meter: mid=%s, meter_id=%s",
+                    mid, meter_id,
+                )
+                return mid, meter_id
+
+        available = ", ".join(m for _, m in options)
+        raise SmgwParseError(
+            f"Configured meter '{target_meter_id}' not found in SMGW dropdown "
+            f"(available: {available})"
+        )
 
     async def _get_meter_values_mid(self, mid: str) -> str:
         """Get the session mid needed for showMeterValues requests.
@@ -386,23 +424,45 @@ class SmgwClient:
         )
         return readings
 
-    async def async_validate_and_get_device_info(self) -> SmgwDeviceInfo:
-        """Validate connection and return device info."""
+    async def async_validate_and_get_device_info(
+        self, target_meter_id: str | None = None
+    ) -> SmgwDeviceInfo:
+        """Validate connection and return device info.
+
+        The returned :class:`SmgwDeviceInfo` always carries the full list of
+        meter IDs visible in the SMGW's dropdown (``available_meter_ids``).
+        The ``meter_id`` field is set to ``target_meter_id`` if given and
+        found in the dropdown; otherwise to the first option (legacy
+        behaviour for callers that have not yet been updated).
+        """
         try:
             login_html = await self._login()
             firmware = self._parse_firmware(login_html)
 
-            _mid, meter_id = await self._navigate_to_meter()
+            options = await self._list_meter_options()
+            available = [meter_id for _mid, meter_id in options]
+
+            if target_meter_id is not None:
+                if target_meter_id not in available:
+                    raise SmgwParseError(
+                        f"Configured meter '{target_meter_id}' not found in "
+                        f"SMGW dropdown (available: {', '.join(available)})"
+                    )
+                selected = target_meter_id
+            else:
+                selected = available[0]
 
             _LOGGER.info(
-                "SMGW validated: meter_id=%s, firmware=%s",
-                meter_id,
+                "SMGW validated: meter_id=%s, firmware=%s, available=%s",
+                selected,
                 firmware,
+                available,
             )
 
             return SmgwDeviceInfo(
-                meter_id=meter_id,
+                meter_id=selected,
                 firmware_version=firmware,
+                available_meter_ids=available,
             )
         finally:
             await self._logout()
@@ -412,12 +472,20 @@ class SmgwClient:
         target_date: date,
         tariff_switch_hour: int = 5,
         tariff_switch_minute: int = 0,
+        target_meter_id: str | None = None,
     ) -> DailyData:
-        """Fetch and process daily data for a given date."""
+        """Fetch and process daily data for a given date.
+
+        If ``target_meter_id`` is given, that specific meter from the SMGW
+        dropdown is queried; otherwise the first option is used (legacy
+        behaviour for single-meter SMGWs).
+        """
         try:
             await self._login()
 
-            mid_dropdown, _meter_id = await self._navigate_to_meter()
+            mid_dropdown, _meter_id = await self._navigate_to_meter(
+                target_meter_id
+            )
             mid = await self._get_meter_values_mid(mid_dropdown)
 
             next_day = target_date + timedelta(days=1)

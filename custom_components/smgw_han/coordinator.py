@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_METER_ID,
     CONF_TARIFF_SWITCH_HOUR,
     CONF_TARIFF_SWITCH_MINUTE,
     CONF_UPDATE_TIME,
@@ -203,11 +204,19 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             return
 
+        # Pass the configured meter id so SMGWs that expose multiple meters
+        # in their dropdown query the correct one. Legacy entries created
+        # before multi-meter support still have CONF_METER_ID populated
+        # (it was always written during setup), so behaviour is unchanged
+        # for them: their meter id matches the only / first dropdown option.
+        target_meter_id = self.config_entry.data.get(CONF_METER_ID)
+
         try:
             daily_data = await self._client.async_fetch_daily_data(
                 yesterday,
                 tariff_switch_hour=tariff_hour,
                 tariff_switch_minute=tariff_minute,
+                target_meter_id=target_meter_id,
             )
         except SmgwAuthError as err:
             raise ConfigEntryAuthFailed(

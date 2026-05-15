@@ -95,7 +95,8 @@ Seit Version 2.0 kann die Integration beliebig viele SMGW-Instanzen parallel ver
 
 Typische Anwendungsfälle:
 
-- **Zwei physische Zähler im Haus** (z.B. Modul-2-Konstellation mit getrenntem Bezugs- und Erzeugungszähler): Beide SMGWs werden je mit eigenen Zugangsdaten und unter Umständen eigener IP-Adresse als separate Einträge angelegt.
+- **Zwei physische Zähler an *einem* SMGW** (z.B. Modul-2-Konstellation mit Bezugs- und separatem Erzeugungszähler am selben SMGW): Beim Anlegen eines neuen Eintrags erkennt die Integration nach dem Login automatisch, dass der SMGW mehrere Zähler im Dropdown anbietet, und fragt in einem zusätzlichen Schritt, welcher Zähler dieser Eintrag werden soll. Für den zweiten Zähler legst du danach einfach einen weiteren Eintrag mit denselben Zugangsdaten an und wählst dort den anderen Zähler.
+- **Zwei getrennte SMGWs** (z.B. zwei Häuser oder unabhängige Messstellen): Jeder SMGW wird mit seinen eigenen Zugangsdaten und ggf. eigener IP-Adresse als separater Eintrag angelegt.
 - **Ein SMGW, zwei Logins**: Manche Messstellenbetreiber vergeben separate HAN-Zugangsdaten für die Verbrauchsabfrage (OBIS 1.8.0) und die Einspeiseabfrage (OBIS 2.8.0). Beide Logins können als zwei unabhängige Einträge gegen denselben SMGW konfiguriert werden. In diesem Fall solltest du das optionale Feld **Gerätename** nutzen und sprechende Namen wie „SMGW Verbrauch" und „SMGW Einspeisung" vergeben, damit sich die beiden Geräte in Home Assistant unterscheiden lassen.
 
 Das Feld **Gerätename** bleibt leer, wenn du nur einen einzelnen SMGW konfigurierst oder wenn die SMGWs ohnehin unterschiedliche physische Zähler abfragen — dann genügt der Standardname „PPC SMGW", den Home Assistant bei mehreren gleichnamigen Geräten automatisch durchnummeriert.

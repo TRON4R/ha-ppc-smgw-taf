@@ -21,6 +21,13 @@
           "device_name": "Leave empty unless you set this integration up multiple times against the same SMGW (e.g. separate logins for grid import and feed-in). In that case enter a distinct name to tell the devices apart."
         }
       },
+      "select_meter": {
+        "title": "Select meter",
+        "description": "Your SMGW exposes multiple meters. Pick which physical meter this entry shall represent in Home Assistant. If you want to monitor both, just add another entry after this setup and pick the other meter there.",
+        "data": {
+          "meter_id": "Meter"
+        }
+      },
       "reauth_confirm": {
         "title": "Re-authenticate SMGW",
         "description": "The SMGW credentials are no longer valid. Please enter updated credentials.",

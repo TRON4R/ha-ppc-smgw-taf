@@ -21,6 +21,13 @@
           "device_name": "Nur ausfüllen, wenn du diese Integration mehrfach mit unterschiedlichen Logins zum selben SMGW verwendest — z.B. wenn dir dein Messstellenbetreiber separate Zugangsdaten für die Verbrauchs- (1.8.0) und die Einspeise-Abfrage (2.8.0) gegeben hat. Vergib in dem Fall hier sprechende Namen wie „SMGW Verbrauch\" und „SMGW Einspeisung\", damit du die beiden Geräte in Home Assistant unterscheiden kannst. Leer lassen, wenn du nur einen SMGW oder unterschiedliche physische Zähler abfragst — dann reicht der Standardname."
         }
       },
+      "select_meter": {
+        "title": "Zähler auswählen",
+        "description": "An deinem SMGW hängen mehrere Zähler. Wähle aus, welchen physischen Zähler dieser Eintrag in Home Assistant repräsentieren soll. Wenn du beide Zähler abfragen möchtest, lege nach diesem Setup einfach einen zweiten Eintrag an und wähle dort den anderen Zähler.",
+        "data": {
+          "meter_id": "Zähler"
+        }
+      },
       "reauth_confirm": {
         "title": "SMGW erneut authentifizieren",
         "description": "Die SMGW-Zugangsdaten sind nicht mehr gültig. Bitte aktualisierte Zugangsdaten eingeben.",

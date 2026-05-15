@@ -95,7 +95,8 @@ Since version 2.0, the integration can manage any number of SMGW instances in pa
 
 Typical use cases:
 
-- **Two physical meters in the building** (e.g. a Modul-2 setup with a separate import and PV-generation meter): both SMGWs are configured as separate entries with their own credentials and, if applicable, their own IP address.
+- **Two physical meters on the *same* SMGW** (e.g. a Modul-2 setup with an import meter and a separate PV-production meter on one SMGW): when adding a new entry, the integration auto-detects that the SMGW exposes multiple meters in its dropdown and shows an extra step asking which meter this entry shall represent. To monitor the second meter as well, simply add another entry with the same credentials and pick the other meter there.
+- **Two separate SMGWs** (e.g. two buildings or independent metering points): each SMGW is added as its own entry with its own credentials and, if applicable, its own IP address.
 - **One SMGW, two logins**: some metering point operators issue separate HAN credentials for consumption (OBIS 1.8.0) and feed-in (OBIS 2.8.0). Both logins can be configured as two independent entries against the same SMGW. In this case use the optional **Device name** field and pick meaningful names like "SMGW Import" and "SMGW Export" so the two devices are clearly distinguishable in Home Assistant.
 
 Leave **Device name** empty when you only run a single SMGW or your SMGWs target distinct physical meters — the default name "PPC SMGW" is sufficient, and Home Assistant automatically numbers devices with identical names.

@@ -130,6 +130,13 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the flow."""
+        # Carry-over from async_step_user to async_step_select_meter when the
+        # SMGW exposes multiple meters in its dropdown.
+        self._pending_user_input: dict[str, Any] | None = None
+        self._available_meter_ids: list[str] = []
+
     @staticmethod
     @callback
     def async_get_options_flow(
@@ -159,6 +166,7 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
                 password=user_input[CONF_PASSWORD],
             )
 
+            device_info = None
             try:
                 device_info = await client.async_validate_and_get_device_info()
             except SmgwAuthError:
@@ -174,40 +182,97 @@ class SmgwTafConfigFlow(ConfigFlow, domain=DOMAIN):
             finally:
                 await client.close()
 
-            if not errors:
-                # Unique id combines meter id and username so the same physical
-                # SMGW can be added once per distinct login (e.g. one credential
-                # set for grid import, another for feed-in).
-                await self.async_set_unique_id(
-                    f"{device_info.meter_id}:{user_input[CONF_USERNAME]}"
-                )
-                self._abort_if_unique_id_configured()
+            if not errors and device_info is not None:
+                if len(device_info.available_meter_ids) > 1:
+                    # SMGW exposes multiple meters in its dropdown (e.g.
+                    # Modul-2 installation with separate import and PV
+                    # meters). Defer entry creation to a meter-selection
+                    # step so the user can pick which one this entry shall
+                    # represent.
+                    self._pending_user_input = user_input
+                    self._available_meter_ids = (
+                        device_info.available_meter_ids
+                    )
+                    return await self.async_step_select_meter()
 
-                user_input[CONF_METER_ID] = device_info.meter_id
-
-                # Assign the lowest free positive integer as instance id.
-                # Existing entries from pre-2.0 installations are treated as
-                # instance 1 (matches their historical hardcoded slug).
-                used_ids = {
-                    entry.data.get(CONF_INSTANCE_ID, 1)
-                    for entry in self._async_current_entries()
-                }
-                user_input[CONF_INSTANCE_ID] = _next_instance_id(used_ids)
-
-                # Normalize empty device name to absent so sensor falls back to default.
-                if not user_input.get(CONF_DEVICE_NAME, "").strip():
-                    user_input.pop(CONF_DEVICE_NAME, None)
-
-                host = SmgwClient.parse_host_from_url(user_input[CONF_URL])
-                return self.async_create_entry(
-                    title=f"PPC SMGW ({host})",
-                    data=user_input,
+                return await self._create_entry_for_meter(
+                    user_input, device_info.meter_id
                 )
 
         return self.async_show_form(
             step_id="user",
             data_schema=_build_schema(),
             errors=errors,
+        )
+
+    async def async_step_select_meter(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Let the user pick one meter from a multi-meter SMGW."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None and self._pending_user_input is not None:
+            selected = user_input[CONF_METER_ID]
+            return await self._create_entry_for_meter(
+                self._pending_user_input, selected
+            )
+
+        meter_options = [
+            {"value": meter_id, "label": meter_id}
+            for meter_id in self._available_meter_ids
+        ]
+
+        return self.async_show_form(
+            step_id="select_meter",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_METER_ID,
+                        default=self._available_meter_ids[0],
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=meter_options,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
+        )
+
+    async def _create_entry_for_meter(
+        self, user_input: dict[str, Any], meter_id: str
+    ) -> ConfigFlowResult:
+        """Finalize a config entry for the given (verified) meter id."""
+        # Unique id combines meter id and username so:
+        #  - the same physical SMGW can be added once per distinct login
+        #    (separate credentials for grid import vs. feed-in), and
+        #  - a single SMGW with multiple meters in its dropdown can be added
+        #    once per meter (same username, different meter id).
+        await self.async_set_unique_id(
+            f"{meter_id}:{user_input[CONF_USERNAME]}"
+        )
+        self._abort_if_unique_id_configured()
+
+        data = {**user_input, CONF_METER_ID: meter_id}
+
+        # Assign the lowest free positive integer as instance id.
+        # Existing entries from pre-2.0 installations are treated as
+        # instance 1 (matches their historical hardcoded slug).
+        used_ids = {
+            entry.data.get(CONF_INSTANCE_ID, 1)
+            for entry in self._async_current_entries()
+        }
+        data[CONF_INSTANCE_ID] = _next_instance_id(used_ids)
+
+        # Normalize empty device name to absent so sensor falls back to default.
+        if not data.get(CONF_DEVICE_NAME, "").strip():
+            data.pop(CONF_DEVICE_NAME, None)
+
+        host = SmgwClient.parse_host_from_url(data[CONF_URL])
+        return self.async_create_entry(
+            title=f"PPC SMGW ({host})",
+            data=data,
         )
 
     async def async_step_reauth(
