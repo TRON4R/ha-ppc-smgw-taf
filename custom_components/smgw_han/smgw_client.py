@@ -578,23 +578,46 @@ class SmgwClient:
 
         tariff_str = f"{tariff_switch_hour:02d}:{tariff_switch_minute:02d}"
 
-        # Import readings are mandatory
-        missing = []
-        if import_a is None:
-            missing.append(f"Import at 00:00 on {target_date}")
-        if import_b is None:
-            missing.append(f"Import at {tariff_str} on {target_date}")
-        if import_c is None:
-            missing.append(f"Import at 00:00 on {next_day}")
-
-        if missing:
-            all_timestamps = sorted(
-                set(r.timestamp for r in import_readings + export_readings)
-            )
+        # At least one of import (1.8.0) or export (2.8.0) must be present;
+        # otherwise the meter has no usable readings at all.
+        if not import_readings and not export_readings:
             raise SmgwParseError(
-                f"Missing required meter readings: {', '.join(missing)}. "
-                f"Available timestamps: {all_timestamps}"
+                f"No import (1.8.0) or export (2.8.0) readings found "
+                f"for {target_date}"
             )
+
+        if import_readings:
+            # Meter has 1.8.0 data (consumption or bidirectional). The three
+            # target timestamps (00:00 start, tariff switch, 00:00 next day)
+            # are mandatory — missing one indicates a real data problem,
+            # not just a meter without import capability.
+            missing = []
+            if import_a is None:
+                missing.append(f"Import at 00:00 on {target_date}")
+            if import_b is None:
+                missing.append(f"Import at {tariff_str} on {target_date}")
+            if import_c is None:
+                missing.append(f"Import at 00:00 on {next_day}")
+
+            if missing:
+                all_timestamps = sorted(
+                    set(r.timestamp for r in import_readings + export_readings)
+                )
+                raise SmgwParseError(
+                    f"Missing required meter readings: {', '.join(missing)}. "
+                    f"Available timestamps: {all_timestamps}"
+                )
+        else:
+            # Export-only meter (e.g. dedicated PV-production meter on a
+            # Modul-2 SMGW where the production meter only exposes 2.8.0).
+            # Treat consumption as zero, symmetrically to the export-only
+            # fallback handled for the inverse case below.
+            _LOGGER.info(
+                "No import (1.8.0) readings found for %s — "
+                "assuming no consumption (export-only meter)",
+                target_date,
+            )
+            import_a = import_b = import_c = 0.0
 
         # Export readings are optional (not all meters have PV / feed-in)
         if export_a is None or export_c is None:

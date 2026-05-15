@@ -390,16 +390,53 @@ class SmgwTafOptionsFlow(OptionsFlow):
                     # that point to a non-first meter on a multi-meter SMGW.
                     new_data[CONF_METER_ID] = old_meter_id
                 elif old_meter_id and len(available) == 1:
-                    # Single-meter SMGW and the old id is gone — treat as a
-                    # hardware swap and adopt the new id. Entities and
-                    # statistics history stay attached to the entry.
-                    _LOGGER.info(
-                        "Meter ID changed from %s to %s - hardware "
-                        "replacement detected on single-meter SMGW. "
-                        "Updating stored meter ID, entities unchanged.",
-                        old_meter_id, device_info.meter_id,
+                    # Old id gone and only one meter is currently visible —
+                    # *might* be a single-meter hardware swap, but only if
+                    # the user is not running this SMGW in a multi-meter
+                    # setup. Otherwise the "one option left" could just mean
+                    # the second meter is temporarily missing from the
+                    # SMGW's dropdown (PLC glitch, firmware update, ...),
+                    # and adopting it would silently re-point this entry at
+                    # the wrong meter.
+                    other_entries = [
+                        e for e in self._async_current_entries()
+                        if e.entry_id != self.config_entry.entry_id
+                    ]
+                    same_smgw_other_entry_exists = any(
+                        e.data.get(CONF_URL) == new_data[CONF_URL]
+                        and e.data.get(CONF_USERNAME) == new_data[CONF_USERNAME]
+                        for e in other_entries
                     )
-                    new_data[CONF_METER_ID] = device_info.meter_id
+                    remaining_used_by_other = any(
+                        e.data.get(CONF_METER_ID) == device_info.meter_id
+                        for e in other_entries
+                    )
+                    if (
+                        same_smgw_other_entry_exists
+                        or remaining_used_by_other
+                    ):
+                        # Multi-meter context is detected (either by a
+                        # sibling entry on the same SMGW or by the remaining
+                        # id already being claimed by another entry). Refuse
+                        # the auto-swap and surface as error.
+                        _LOGGER.error(
+                            "Configured meter %s missing from SMGW dropdown. "
+                            "Only %s remains, but this looks like a "
+                            "multi-meter setup (sibling entries detected). "
+                            "Refusing to silently re-point this entry. "
+                            "Remove and re-add it instead.",
+                            old_meter_id, device_info.meter_id,
+                        )
+                        errors["base"] = "configured_meter_missing"
+                    else:
+                        # Genuine single-meter SMGW: classic hardware swap.
+                        _LOGGER.info(
+                            "Meter ID changed from %s to %s - hardware "
+                            "replacement detected on single-meter SMGW. "
+                            "Updating stored meter ID, entities unchanged.",
+                            old_meter_id, device_info.meter_id,
+                        )
+                        new_data[CONF_METER_ID] = device_info.meter_id
                 elif old_meter_id:
                     # Multi-meter SMGW and configured meter vanished — we
                     # can't pick a replacement blindly. Surface as error so

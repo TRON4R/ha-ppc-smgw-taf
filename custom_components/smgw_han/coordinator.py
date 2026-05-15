@@ -174,10 +174,23 @@ class SmgwTafCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     async def _handle_daily_fetch(self, now: datetime) -> None:
-        """Handle the scheduled daily fetch."""
+        """Handle the scheduled daily fetch.
+
+        Both ConfigEntryAuthFailed and UpdateFailed are caught here because
+        this callback runs outside of DataUpdateCoordinator's own update
+        cycle (we use async_track_time_change instead of update_interval),
+        so HA would not automatically translate auth failures into a reauth
+        flow — we have to trigger it explicitly.
+        """
         _LOGGER.info("Starting scheduled daily SMGW data fetch")
         try:
             await self._async_do_daily_fetch()
+        except ConfigEntryAuthFailed as err:
+            _LOGGER.error(
+                "Authentication failed during scheduled fetch, "
+                "starting reauth flow: %s", err,
+            )
+            self.config_entry.async_start_reauth(self.hass)
         except UpdateFailed as err:
             _LOGGER.error("Scheduled daily fetch failed: %s", err)
 
