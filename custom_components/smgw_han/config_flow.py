@@ -372,17 +372,50 @@ class SmgwTafOptionsFlow(OptionsFlow):
                 password=new_data[CONF_PASSWORD],
             )
 
+            old_meter_id = self.config_entry.data.get(CONF_METER_ID)
+
             try:
+                # Always inspect the *full* dropdown so we can decide whether
+                # the configured meter is still present, was swapped, or
+                # vanished from a multi-meter SMGW. Passing no target makes
+                # device_info.meter_id default to the first dropdown option,
+                # but we *only* adopt that as the entry's meter id in the
+                # narrow "single-meter SMGW + hardware swap" case below.
                 device_info = await client.async_validate_and_get_device_info()
-                old_meter_id = self.config_entry.data.get(CONF_METER_ID)
-                if old_meter_id and device_info.meter_id != old_meter_id:
+                available = device_info.available_meter_ids
+
+                if old_meter_id and old_meter_id in available:
+                    # Configured meter still present — keep it. This is the
+                    # common case and prevents silent corruption of entries
+                    # that point to a non-first meter on a multi-meter SMGW.
+                    new_data[CONF_METER_ID] = old_meter_id
+                elif old_meter_id and len(available) == 1:
+                    # Single-meter SMGW and the old id is gone — treat as a
+                    # hardware swap and adopt the new id. Entities and
+                    # statistics history stay attached to the entry.
                     _LOGGER.info(
-                        "Meter ID changed from %s to %s - hardware replacement "
-                        "detected. Updating stored meter ID, entities unchanged.",
-                        old_meter_id,
-                        device_info.meter_id,
+                        "Meter ID changed from %s to %s - hardware "
+                        "replacement detected on single-meter SMGW. "
+                        "Updating stored meter ID, entities unchanged.",
+                        old_meter_id, device_info.meter_id,
                     )
-                new_data[CONF_METER_ID] = device_info.meter_id
+                    new_data[CONF_METER_ID] = device_info.meter_id
+                elif old_meter_id:
+                    # Multi-meter SMGW and configured meter vanished — we
+                    # can't pick a replacement blindly. Surface as error so
+                    # the user explicitly removes and re-adds the entry.
+                    _LOGGER.error(
+                        "Configured meter %s no longer in SMGW dropdown. "
+                        "Available: %s. Remove this entry and add it again "
+                        "to pick a meter.",
+                        old_meter_id, available,
+                    )
+                    errors["base"] = "configured_meter_missing"
+                else:
+                    # No stored meter id (defensive fallback — should not
+                    # occur on existing entries since CONF_METER_ID has been
+                    # written during setup since v1.x).
+                    new_data[CONF_METER_ID] = device_info.meter_id
             except SmgwAuthError:
                 errors["base"] = "invalid_auth"
             except SmgwConnectionError:
