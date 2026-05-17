@@ -89,7 +89,7 @@ Die Bestandskonfiguration bleibt unverändert — alle Entitäten und die Energy
 
 ## Mehrere SMGWs / mehrere Zugänge
 
-Seit Version 2.0 kann die Integration beliebig viele SMGW-Instanzen parallel verwalten. Klicke einfach erneut auf „Integration hinzufügen" und lege einen weiteren Zugang an. Jeder Eintrag bekommt einen eigenen Satz Entitäten (`smgw_meter1_*`, `smgw_meter2_*`, …) und ein eigenes Gerät im Geräte-Register.
+Seit Version 2.0 kann die Integration beliebig viele SMGW-Instanzen parallel verwalten. Klicke einfach erneut auf „Integration hinzufügen" und lege einen weiteren Zugang an. Jeder Eintrag bekommt einen eigenen Satz Entitäten und ein eigenes Gerät im Geräte-Register.
 
 Typische Anwendungsfälle:
 

@@ -17,12 +17,12 @@
 
 This integration connects to your PPC SMGW once per day and retrieves the official, calibration-grade daily meter readings from the Zählerstand (meter readings) endpoint. It calculates:
 
-- **Daily consumption (total)** — total electricity consumed
-- **Daily consumption (slot 1)** — consumption during the first tariff period (default: 00:00–04:59)
-- **Daily consumption (slot 2)** — consumption during the second tariff period (default: 05:00–23:59)
-- **Daily feed-in (total)** — total electricity fed back to grid
+- **Daily consumption (total)** - total electricity consumed
+- **Daily consumption (slot 1)** - consumption during the first tariff period (default: 00:00–04:59)
+- **Daily consumption (slot 2)** - consumption during the second tariff period (default: 05:00–23:59)
+- **Daily feed-in (total)** - total electricity fed back to grid
 
-All sensors are compatible with the Home Assistant **Energy Dashboard**.
+All sensors are compatible with the **Home Assistant Energy Dashboard**.
 
 ## How does this differ from ha-ppc-smgw?
 
@@ -31,8 +31,8 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 - **One fetch per day** (5 HTTP requests total, at a configurable time — eliminating any risk of being locked out by the SMGW due to excessive polling)
 - **Certified values** from the SMGW's Zählerstand endpoint (not live meter snapshots)
 - **Accurate tariff split** using the second-precise meter reading at the configured tariff switch time
-- **No timing issues** — values are based on the SMGW's official daily boundaries, not the local clock of the Home Assistant server
-- **Multiple meters and SMGWs in parallel** — supports both several SMGWs and several meters on a single SMGW (Modul-2 setups, separate logins for import and feed-in). Details under [Multiple SMGWs / multiple logins](#multiple-smgws--multiple-logins).
+- **No timing issues** - values are based on the SMGW's official daily boundaries, not the local clock of the Home Assistant server
+- **Multiple meters and SMGWs in parallel** - supports both several SMGWs and several meters on a single SMGW (Modul-2 setups, separate logins for import and feed-in). Details under [Multiple SMGWs / multiple logins](#multiple-smgws--multiple-logins).
 
 ## Requirements
 
@@ -89,7 +89,7 @@ Your existing configuration remains untouched — all entities and the Energy Da
 
 ## Multiple SMGWs / multiple logins
 
-Since version 2.0, the integration can manage any number of SMGW instances in parallel. Just click "Add Integration" again and configure another login. Each entry gets its own set of entities (`smgw_meter1_*`, `smgw_meter2_*`, …) and its own device in the device registry.
+Since version 2.0, the integration can manage any number of SMGW instances in parallel. Just click "Add Integration" again and configure another login. Each entry gets its own set of entities and its own device in the device registry.
 
 Typical use cases:
 
@@ -141,9 +141,11 @@ You can find your entity IDs under **Settings → Devices & Services → Entitie
 
 ## Intended use case
 
-This integration was developed for the **Octopus Energy Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59**.
+This integration was developed for the **Octopus Energy (Intelligent) Go tariff** in Germany, which offers a reduced electricity rate between **00:00 and 04:59:59** (Go tariff) and a standard rate from **05:00 to 23:59:59** (standard tariff).
 
-The **tariff split time** can be **freely adjusted** via the GUI. If you are using a very different tariff structure or a totally different tariff switch time, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or ideally a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
+The **tariff split time** can however be **freely adjusted** via the GUI for other tariffs.
+
+If you are using a completely different tariff structure, please [open an issue](https://github.com/TRON4R/ha-ppc-smgw-han/issues) or ideally a [pull request](https://github.com/TRON4R/ha-ppc-smgw-han/pulls) to discuss how to make this work for your setup.
 
 ## License
 
