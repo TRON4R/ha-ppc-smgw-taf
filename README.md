@@ -22,7 +22,7 @@ Die Integration verbindet sich einmal täglich mit dem PPC SMGW und ruft die off
 - **Tagesverbrauch (Zeitfenster 2)** — Verbrauch im zweiten Tarifzeitraum (Standard: 05:00–23:59)
 - **Tageseinspeisung (gesamt)** — gesamte Netzeinspeisung des Vortags
 
-Alle Sensoren sind kompatibel mit dem Home Assistant **Energie-Dashboard**.
+Alle Sensoren sind kompatibel mit dem **Home Assistant Energie-Dashboard**.
 
 ## Unterschied zu ha-ppc-smgw
 
