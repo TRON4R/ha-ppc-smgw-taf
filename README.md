@@ -17,10 +17,10 @@
 
 Die Integration verbindet sich einmal täglich mit dem PPC SMGW und ruft die offiziellen, eichrechtskonformen Tagesendwerte vom Zählerstand-Endpunkt ab. Sie berechnet:
 
-- **Tagesverbrauch (gesamt)** — gesamter Stromverbrauch des Vortags
-- **Tagesverbrauch (Zeitfenster 1)** — Verbrauch im ersten Tarifzeitraum (Standard: 00:00–04:59)
-- **Tagesverbrauch (Zeitfenster 2)** — Verbrauch im zweiten Tarifzeitraum (Standard: 05:00–23:59)
-- **Tageseinspeisung (gesamt)** — gesamte Netzeinspeisung des Vortags
+- **Tagesverbrauch (gesamt)** - gesamter Stromverbrauch des Vortags
+- **Tagesverbrauch (Zeitfenster 1)** - Verbrauch im ersten Tarifzeitraum (Standard: 00:00–04:59)
+- **Tagesverbrauch (Zeitfenster 2)** - Verbrauch im zweiten Tarifzeitraum (Standard: 05:00–23:59)
+- **Tageseinspeisung (gesamt)** - gesamte Netzeinspeisung des Vortags
 
 Alle Sensoren sind kompatibel mit dem **Home Assistant Energie-Dashboard**.
 
@@ -31,8 +31,8 @@ Die bestehende [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw)-In
 - **Ein Abruf pro Tag** (5 HTTP-Requests insgesamt, zu einer konfigurierbaren Uhrzeit. Damit kein Risiko einer SMGW-Sperrung wegen Überbeanspruchung)
 - **Geeichte Werte** vom Zählerstand-Endpunkt des SMGW (keine Live-Momentaufnahmen)
 - **Exakte Tarifaufteilung** anhand des sekundengenauen Zählerstands zum konfigurierten Tarifwechselzeitpunkt
-- **Keine Timing-Probleme** — die Werte basieren auf den offiziellen Tagesgrenzen des SMGW, nicht auf der lokalen Uhrzeit des „Home Assistant"-Servers
-- **Mehrere Zähler und SMGWs parallel** — die Integration unterstützt sowohl mehrere SMGWs als auch mehrere Zähler an einem SMGW (Modul-2-Konstellationen, getrennte Logins für Verbrauch und Einspeisung). Details unter [Mehrere SMGWs / mehrere Zugänge](#mehrere-smgws--mehrere-zugänge).
+- **Keine Timing-Probleme** - die Werte basieren auf den offiziellen Tagesgrenzen des SMGW, nicht auf der lokalen Uhrzeit des „Home Assistant"-Servers
+- **Mehrere Zähler und SMGWs parallel** - die Integration unterstützt sowohl mehrere SMGWs als auch mehrere Zähler an einem SMGW (Modul-2-Konstellationen, getrennte Logins für Verbrauch und Einspeisung). Details unter [Mehrere SMGWs / mehrere Zugänge](#mehrere-smgws--mehrere-zugänge).
 
 ## Voraussetzungen
 
