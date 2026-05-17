@@ -62,14 +62,14 @@ The existing [ha-ppc-smgw](https://github.com/jannickfahlbusch/ha-ppc-smgw) inte
 1. Copy `custom_components/smgw_han/` to your Home Assistant `custom_components/` directory
 2. Restart Home Assistant
 
-### Beta versions (multi-SMGW support)
+### Trying pre-release versions
 
-Multi-SMGW support is currently in beta. To try the beta:
+If a pre-release is available and you want to try it:
 
 1. HACS → Integrations → open "PPC SMGW HAN Daily Import"
 2. Three-dot menu in the top right → **"Re-download"**
 3. Expand **"Need a different version?"** in the dialog
-4. From the **"Release"** dropdown, pick the desired beta version (with an orange `pre-release` label, e.g. `v2.0.0b3`)
+4. From the **"Release"** dropdown, pick the desired version (with an orange `pre-release` label)
 5. Click **"Download"**
 6. Restart Home Assistant
 
@@ -87,9 +87,6 @@ Your existing configuration remains untouched — all entities and the Energy Da
    - **Device name** (optional, see next section)
 
 ## Multiple SMGWs / multiple logins
-
-> [!IMPORTANT]
-> Multi-SMGW support has been available since **v2.0.0b1** but is currently still in **beta**. HACS only shows the beta version if you explicitly pick it from the version dropdown under "Re-download" (see [Installation → Beta versions](#beta-versions-multi-smgw-support)). Existing users on default settings continue to receive stable v1.x.
 
 Since version 2.0, the integration can manage any number of SMGW instances in parallel. Just click "Add Integration" again and configure another login. Each entry gets its own set of entities (`smgw_meter1_*`, `smgw_meter2_*`, …) and its own device in the device registry.
 
